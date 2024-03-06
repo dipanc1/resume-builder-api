@@ -41,7 +41,7 @@ export class SendResumeController {
 
     if (!fileName) {
       return of({
-        error: 'File must be a PDF, DOC & DOCX'
+        error: 'File must be a PDF or DOCX file!'
       });
     }
 
