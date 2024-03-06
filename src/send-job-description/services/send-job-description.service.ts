@@ -1,6 +1,6 @@
-import { Injectable } from "@nestjs/common";
-import { Observable, of } from "rxjs";
-import { JobDescriptionBody } from "../models/job-description-body.class";
+import { Injectable } from '@nestjs/common';
+import { Observable, of } from 'rxjs';
+import { JobDescriptionBody } from '../models/job-description-body.class';
 
 @Injectable()
 export class SendJobDescriptionService {
