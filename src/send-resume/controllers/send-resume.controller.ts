@@ -30,12 +30,6 @@ export class SendResumeController {
     return this.sendResumeService.sendResume(resume);
   }
 
-  @Post('get-generated-resume')
-  @HttpCode(200)
-  sendGeneratedResume(@Body() resume: ResumeBody): Observable<any> {
-    return this.sendResumeService.sendGeneratedResume(resume);
-  }
-
   @Post('upload')
   @HttpCode(200)
   @UseInterceptors(FileInterceptor('resume', saveResumeToStorage))

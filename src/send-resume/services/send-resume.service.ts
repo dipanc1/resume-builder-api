@@ -18,12 +18,6 @@ export class SendResumeService {
   sendResume(resume: ResumeBody): Observable<any> {
     if (!resume.resume) return of('Please provide a resume.');
 
-    return of(`Resume sent successfully ${resume.resume}`);
-  }
-
-  sendGeneratedResume(resume: ResumeBody): Observable<any> {
-    if (!resume.resume) return of('Please provide a resume.');
-
     return from(
       firstValueFrom(
         this.httpService
