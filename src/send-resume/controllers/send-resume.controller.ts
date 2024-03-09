@@ -3,7 +3,6 @@ import {
   Controller,
   HttpCode,
   Post,
-  Req,
   UploadedFile,
   UseInterceptors
 } from '@nestjs/common';
@@ -18,7 +17,8 @@ import {
   removeFile,
   saveResumeToStorage
 } from 'src/helpers/resume-storage';
-let reader = require('any-text');
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const reader = require('any-text');
 
 @Controller('send-resume')
 export class SendResumeController {
