@@ -28,7 +28,7 @@ export class SendJobDescriptionService {
             }
           )
           .pipe(
-            switchMap(async response => response.data),
+            switchMap(async response => JSON.parse(response.data.resume)),
             catchError((error: AxiosError) => {
               console.log(error);
               throw 'An error happened!';
