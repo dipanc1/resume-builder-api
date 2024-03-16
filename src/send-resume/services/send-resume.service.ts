@@ -1,12 +1,5 @@
-import { Injectable } from '@nestjs/common';
-import {
-  Observable,
-  catchError,
-  firstValueFrom,
-  from,
-  of,
-  switchMap
-} from 'rxjs';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { Observable, catchError, firstValueFrom, from, switchMap } from 'rxjs';
 import { ResumeBody } from '../models/resume-body.class';
 import { HttpService } from '@nestjs/axios';
 import { AxiosError } from 'axios';
@@ -16,7 +9,8 @@ export class SendResumeService {
   constructor(private readonly httpService: HttpService) {}
 
   sendResume(resume: ResumeBody): Observable<any> {
-    if (!resume.resume) return of('Please provide a resume.');
+    if (!resume.resume)
+      throw new BadRequestException('Please provide a resume.');
 
     return from(
       firstValueFrom(
@@ -36,7 +30,7 @@ export class SendResumeService {
             switchMap(async response => JSON.parse(response.data.resume)),
             catchError((error: AxiosError) => {
               console.log(error);
-              throw 'An error happened!';
+              throw new BadRequestException('An error happened!');
             })
           )
       )

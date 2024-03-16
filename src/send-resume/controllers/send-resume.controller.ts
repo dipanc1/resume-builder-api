@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   HttpCode,
@@ -25,7 +26,6 @@ export class SendResumeController {
   constructor(private readonly sendResumeService: SendResumeService) {}
 
   @Post()
-  @HttpCode(200)
   sendResume(@Body() resume: ResumeBody): Observable<any> {
     return this.sendResumeService.sendResume(resume);
   }
@@ -33,19 +33,19 @@ export class SendResumeController {
   @Post('upload')
   @HttpCode(200)
   @UseInterceptors(FileInterceptor('resume', saveResumeToStorage))
-  uploadResume(@UploadedFile() resume: Express.Multer.File): Observable<any> {
+  uploadResume(
+    @UploadedFile() resume: Express.Multer.File
+  ): Observable<string | { error: string }> {
     const fileName = resume?.filename;
 
     if (!fileName) {
-      return of({
-        error: 'File must be a PDF or DOCX file!'
-      });
+      throw new BadRequestException('File must be a PDF or DOCX file!');
     }
 
     const fileSize = resume?.size;
 
     if (isFileSizeLessThanOneMB(fileSize))
-      return of({ error: 'File size too large!' });
+      throw new BadRequestException('File size must be less than 1MB!');
 
     const uploadsFolderPath = join(process.cwd(), 'uploads');
     const fullFilePath = join(uploadsFolderPath, '/' + resume.filename);
@@ -56,9 +56,9 @@ export class SendResumeController {
           return of(reader.getText(fullFilePath));
         }
         removeFile(fullFilePath);
-        return of({
-          error: 'File content does not match the file extension!'
-        });
+        throw new BadRequestException(
+          'File content does not match the file extension!'
+        );
       })
     );
   }

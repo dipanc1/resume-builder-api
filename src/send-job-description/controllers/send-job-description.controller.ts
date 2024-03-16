@@ -1,4 +1,4 @@
-import { Body, Controller, HttpCode, Post } from '@nestjs/common';
+import { Body, Controller, Post } from '@nestjs/common';
 import { JobDescriptionBody } from '../models/job-description-body.class';
 import { Observable } from 'rxjs';
 import { SendJobDescriptionService } from '../services/send-job-description.service';
@@ -10,7 +10,6 @@ export class SendJobDescriptionController {
   ) {}
 
   @Post()
-  @HttpCode(200)
   sendJobDescription(
     @Body() jobDescription: JobDescriptionBody
   ): Observable<any> {

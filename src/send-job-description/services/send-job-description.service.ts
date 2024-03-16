@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { Observable, catchError, firstValueFrom, from, switchMap } from 'rxjs';
 import { JobDescriptionBody } from '../models/job-description-body.class';
 import { HttpService } from '@nestjs/axios';
@@ -31,7 +31,7 @@ export class SendJobDescriptionService {
             switchMap(async response => JSON.parse(response.data.resume)),
             catchError((error: AxiosError) => {
               console.log(error);
-              throw 'An error happened!';
+              throw new BadRequestException('An error happened!');
             })
           )
       )
