@@ -4,7 +4,9 @@ import { PassportStrategy } from '@nestjs/passport';
 import { AuthService } from '../services/auth.service';
 
 @Injectable()
-export class LinkedINStrategy extends PassportStrategy(LinkedInStrategy) {
+export class LinkedInPassportStrategy extends PassportStrategy(
+  LinkedInStrategy
+) {
   constructor(private authService: AuthService) {
     super({
       clientID: process.env.LINKEDIN_CLIENT_ID,
