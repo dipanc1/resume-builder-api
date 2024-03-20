@@ -1,10 +1,12 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get, Req, Res, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 
 import { GoogleOAuthGuard } from '../guards/google-oauth.guard';
+import { AuthService } from '../services/auth.service';
 
 @Controller('auth')
 export class AuthController {
+  constructor(private authService: AuthService) {}
   @Get('linkedin')
   @UseGuards(AuthGuard('linkedin'))
   linkedinLogin() {
@@ -15,7 +17,7 @@ export class AuthController {
   @UseGuards(AuthGuard('linkedin'))
   linkedinCallback(req: any, res: any) {
     // Handle the LinkedIn callback and authenticate the user.
-    return res.redirect('http://localhost:3001/create');
+    return res.redirect('http://localhost:3000/create');
   }
 
   @Get('google')
@@ -24,10 +26,15 @@ export class AuthController {
     // Redirect the user to Google for authentication.
   }
 
-  @Get('google/callback')
+  @Get('google-callback')
   @UseGuards(GoogleOAuthGuard)
-  googleCallback(req: any, res: any) {
+  googleCallback(@Req() req, @Res() res) {
     // Handle the Google callback and authenticate the user.
-    return res.redirect('http://localhost:3001/create');
+    if (this.authService.validateUser(req.user.email)) {
+      return res.redirect('http://localhost:3000/create');
+    } else {
+      this.authService.createUser(req.user);
+      return res.redirect('http://localhost:3000/create');
+    }
   }
 }

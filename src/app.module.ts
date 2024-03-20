@@ -6,6 +6,9 @@ import { SendJobDescriptionModule } from './send-job-description/send-job-descri
 import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { MongooseModule } from '@nestjs/mongoose';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 @Module({
   imports: [
@@ -15,6 +18,15 @@ import { MongooseModule } from '@nestjs/mongoose';
     SendResumeModule,
     SendJobDescriptionModule,
     AuthModule,
+    ThrottlerModule.forRoot([
+      {
+        ttl: 600000,
+        limit: 5
+      }
+    ]),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'client')
+    }),
     MongooseModule.forRootAsync({
       useFactory: () => ({
         uri: process.env.MONGO_DEV_URI

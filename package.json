@@ -27,6 +27,8 @@
     "@nestjs/mongoose": "^10.0.4",
     "@nestjs/passport": "^10.0.3",
     "@nestjs/platform-express": "^10.0.0",
+    "@nestjs/serve-static": "^4.0.1",
+    "@nestjs/throttler": "^5.1.2",
     "any-text": "^1.2.0",
     "axios": "^1.6.7",
     "class-transformer": "^0.5.1",

@@ -1,15 +1,15 @@
 import { Injectable } from '@nestjs/common';
-import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
+import { Strategy, VerifyCallback } from 'passport-google-oauth20';
 import { PassportStrategy } from '@nestjs/passport';
 import { AuthService } from '../services/auth.service';
 
 @Injectable()
-export class GooglePassportStrategy extends PassportStrategy(GoogleStrategy) {
+export class GooglePassportStrategy extends PassportStrategy(Strategy) {
   constructor(private authService: AuthService) {
     super({
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: 'http://localhost:3000/auth/google/callback',
+      callbackURL: 'http://localhost:5000/api/auth/google-callback',
       scope: ['email', 'profile']
     });
   }
@@ -18,7 +18,7 @@ export class GooglePassportStrategy extends PassportStrategy(GoogleStrategy) {
     accessToken: string,
     refreshToken: string,
     profile: any,
-    done: any
+    done: VerifyCallback
   ) {
     const { name, emails, photos } = profile;
     const user = {

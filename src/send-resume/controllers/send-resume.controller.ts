@@ -5,6 +5,7 @@ import {
   HttpCode,
   Post,
   UploadedFile,
+  UseGuards,
   UseInterceptors
 } from '@nestjs/common';
 import { join } from 'path';
@@ -18,6 +19,7 @@ import {
   removeFile,
   saveResumeToStorage
 } from 'src/helpers/resume-storage';
+import { ThrottlerGuard } from '@nestjs/throttler';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const reader = require('any-text');
 
@@ -26,6 +28,7 @@ export class SendResumeController {
   constructor(private readonly sendResumeService: SendResumeService) {}
 
   @Post()
+  @UseGuards(ThrottlerGuard)
   sendResume(@Body() resume: ResumeBody): Observable<any> {
     return this.sendResumeService.sendResume(resume);
   }
