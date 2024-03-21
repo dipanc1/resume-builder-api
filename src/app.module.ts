@@ -7,8 +7,6 @@ import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ThrottlerModule } from '@nestjs/throttler';
-import { ServeStaticModule } from '@nestjs/serve-static';
-import { join } from 'path';
 
 @Module({
   imports: [
@@ -21,12 +19,9 @@ import { join } from 'path';
     ThrottlerModule.forRoot([
       {
         ttl: 600000,
-        limit: 5
+        limit: 50
       }
     ]),
-    ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'client')
-    }),
     MongooseModule.forRootAsync({
       useFactory: () => ({
         uri: process.env.MONGO_DEV_URI
