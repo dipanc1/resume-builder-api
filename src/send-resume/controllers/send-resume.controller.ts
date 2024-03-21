@@ -40,6 +40,7 @@ export class SendResumeController {
     @UploadedFile() resume: Express.Multer.File
   ): Observable<string | { error: string }> {
     const fileName = resume?.filename;
+    console.log('fileName', fileName);
 
     if (!fileName) {
       throw new BadRequestException('File must be a PDF or DOCX file!');
