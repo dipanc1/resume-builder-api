@@ -10,5 +10,6 @@ export class TemplateBody {
   image: string;
 
   @IsString()
+  @IsNotEmpty()
   user: string;
 }

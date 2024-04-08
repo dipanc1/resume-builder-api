@@ -1,21 +1,35 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { SaveResume } from '../models/save-resume.interface';
-import { MODELS } from 'src/constants';
-import { Template } from '../models/template.interface';
+
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
+
+import { SaveResume } from '../models/save-resume.interface';
+import { Template } from '../models/template.interface';
+
+import { MODELS } from 'src/constants';
+
 import { SaveResumeBody } from '../models/save-resume-body.class';
 import { TemplateBody } from '../models/template-body.class';
+import { User } from 'src/auth/models/user.interface';
 
 @Injectable()
 export class SaveResumeService {
   constructor(
     @InjectModel(MODELS.RESUME) private saveResumeModel: Model<SaveResume>,
-    @InjectModel(MODELS.TEMPLATE) private templateModel: Model<Template>
+    @InjectModel(MODELS.TEMPLATE) private templateModel: Model<Template>,
+    @InjectModel(MODELS.USER) private userModel: Model<User>
   ) {}
 
-  saveResume(saveResume: SaveResumeBody) {
-    const template = this.templateModel.findOne({
+  async saveResume(saveResume: SaveResumeBody) {
+    const user = await this.userModel.findOne({
+      _id: saveResume.userId
+    });
+
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+
+    const template = await this.templateModel.findOne({
       _id: saveResume.templateId
     });
 
@@ -23,21 +37,29 @@ export class SaveResumeService {
       throw new BadRequestException('Template not found');
     }
 
-    // const resume = this.saveResumeModel.findOne({
-    //   name: saveResume.name,
-    //   templateId: saveResume.templateId,
-    //   userId: saveResume.userId
-    // });
+    const resume = await this.saveResumeModel.findOne({
+      name: saveResume.name,
+      templateId: saveResume.templateId,
+      userId: saveResume.userId
+    });
 
-    // if (resume) {
-    //   throw new BadRequestException('Resume already exists');
-    // }
+    if (resume) {
+      throw new BadRequestException('Resume already exists');
+    }
 
     return this.saveResumeModel.create(saveResume);
   }
 
-  saveTemplate(saveTemplate: TemplateBody) {
-    const template = this.templateModel.findOne({
+  async saveTemplate(saveTemplate: TemplateBody) {
+    const user = await this.userModel.findOne({
+      _id: saveTemplate.user
+    });
+
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+
+    const template = await this.templateModel.findOne({
       name: saveTemplate.name,
       users: saveTemplate.user
     });
