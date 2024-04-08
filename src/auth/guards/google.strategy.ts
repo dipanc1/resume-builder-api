@@ -9,7 +9,7 @@ export class GooglePassportStrategy extends PassportStrategy(Strategy) {
     super({
       clientID: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL: 'http://localhost:5000/api/auth/google-callback',
+      callbackURL: process.env.CALLBACK_URL,
       scope: ['email', 'profile']
     });
   }
@@ -26,8 +26,7 @@ export class GooglePassportStrategy extends PassportStrategy(Strategy) {
       firstName: name.givenName,
       lastName: name.familyName,
       picture: photos[0].value,
-      accessToken,
-      refreshToken
+      accessToken
     };
 
     const existingUser = await this.authService.validateUser(user.email);

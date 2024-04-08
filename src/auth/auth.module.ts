@@ -11,13 +11,31 @@ import { AuthController } from './controllers/auth.controller';
 import { UserSchema } from './schemas/user.schema';
 
 import { MODELS } from 'src/constants';
+import { JwtModule } from '@nestjs/jwt';
+import { JwtGuard } from './guards/jwt-auth.guard';
+import { JwtGuardStrategy } from './guards/jwt-auth.strategy';
 
 @Module({
   imports: [
     PassportModule,
-    MongooseModule.forFeature([{ name: MODELS.USER_MODEL, schema: UserSchema }])
+    MongooseModule.forFeature([{ name: MODELS.USER, schema: UserSchema }]),
+    JwtModule.registerAsync({
+      useFactory: () => ({
+        secret: process.env.JWT_SECRET,
+        signOptions: {
+          expiresIn: '3600s'
+        },
+        global: true
+      })
+    })
   ],
   controllers: [AuthController],
-  providers: [LinkedInPassportStrategy, GooglePassportStrategy, AuthService]
+  providers: [
+    LinkedInPassportStrategy,
+    JwtGuardStrategy,
+    JwtGuard,
+    GooglePassportStrategy,
+    AuthService
+  ]
 })
 export class AuthModule {}

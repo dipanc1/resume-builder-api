@@ -7,6 +7,7 @@ import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { SaveResumeModule } from './save-resume/save-resume.module';
 
 @Module({
   imports: [
@@ -26,7 +27,8 @@ import { ThrottlerModule } from '@nestjs/throttler';
       useFactory: () => ({
         uri: process.env.MONGO_DEV_URI
       })
-    })
+    }),
+    SaveResumeModule
   ],
   controllers: [AppController],
   providers: [AppService]

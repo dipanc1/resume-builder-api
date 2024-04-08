@@ -1,3 +1,5 @@
 export const MODELS = {
-  USER_MODEL: 'USER_MODEL'
+  USER: 'user',
+  RESUME: 'resume',
+  TEMPLATE: 'template'
 };

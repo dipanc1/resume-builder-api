@@ -4,10 +4,14 @@ import { Model } from 'mongoose';
 import { UserBody } from '../models/user-body.class';
 import { User } from '../models/user.interface';
 import { InjectModel } from '@nestjs/mongoose';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
-  constructor(@InjectModel(MODELS.USER_MODEL) private userModel: Model<User>) {}
+  constructor(
+    @InjectModel(MODELS.USER) private userModel: Model<User>,
+    private jwtService: JwtService
+  ) {}
 
   async login(user: UserBody) {
     return user;
@@ -20,5 +24,19 @@ export class AuthService {
   async createUser(user: UserBody) {
     const newUser = new this.userModel(user);
     return await newUser.save();
+  }
+
+  async oAuthLogin(user: UserBody) {
+    if (!user) {
+      throw new Error('User not found!!!');
+    }
+
+    const payload = {
+      email: user.email
+    };
+
+    const jwt = await this.jwtService.sign(payload);
+
+    return { jwt };
   }
 }
