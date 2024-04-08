@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class TemplateBody {
   @IsString()
@@ -7,9 +7,13 @@ export class TemplateBody {
 
   @IsString()
   @IsNotEmpty()
-  image: string;
+  imageUrl: string;
+
+  @IsNumber()
+  @IsNotEmpty()
+  price: number;
 
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   user: string;
 }

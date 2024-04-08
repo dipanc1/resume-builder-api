@@ -12,6 +12,9 @@ import { SaveResumeBody } from '../models/save-resume-body.class';
 import { TemplateBody } from '../models/template-body.class';
 import { User } from 'src/auth/models/user.interface';
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const kebabCase = require('lodash.kebabcase');
+
 @Injectable()
 export class SaveResumeService {
   constructor(
@@ -21,8 +24,9 @@ export class SaveResumeService {
   ) {}
 
   async saveResume(saveResume: SaveResumeBody) {
+    const { userId, templateId, name } = saveResume;
     const user = await this.userModel.findOne({
-      _id: saveResume.userId
+      _id: userId
     });
 
     if (!user) {
@@ -30,7 +34,7 @@ export class SaveResumeService {
     }
 
     const template = await this.templateModel.findOne({
-      _id: saveResume.templateId
+      _id: templateId
     });
 
     if (!template) {
@@ -38,9 +42,9 @@ export class SaveResumeService {
     }
 
     const resume = await this.saveResumeModel.findOne({
-      name: saveResume.name,
-      templateId: saveResume.templateId,
-      userId: saveResume.userId
+      name,
+      templateId,
+      userId
     });
 
     if (resume) {
@@ -51,29 +55,24 @@ export class SaveResumeService {
   }
 
   async saveTemplate(saveTemplate: TemplateBody) {
-    const user = await this.userModel.findOne({
-      _id: saveTemplate.user
-    });
-
-    if (!user) {
-      throw new BadRequestException('User not found');
-    }
-
+    const { imageUrl, price } = saveTemplate;
     const template = await this.templateModel.findOne({
-      name: saveTemplate.name,
-      users: saveTemplate.user
+      name: saveTemplate.name
     });
 
     if (template) {
       throw new BadRequestException('Template already exists');
     }
 
+    const name = kebabCase(saveTemplate.name);
+
     const payload = {
-      name: saveTemplate.name,
-      image: saveTemplate.image,
-      createdAt: new Date(),
-      users: [saveTemplate.user]
+      name,
+      imageUrl,
+      price,
+      createdAt: new Date()
     };
+
     return this.templateModel.create(payload);
   }
 }

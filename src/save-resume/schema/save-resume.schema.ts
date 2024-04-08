@@ -8,5 +8,7 @@ export const SaveResumeSchema = new mongoose.Schema({
   },
   name: { type: String, required: true },
   userId: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'user' },
-  data: { type: mongoose.Schema.Types.Mixed }
+  data: { type: mongoose.Schema.Types.Mixed },
+  rawData: { type: mongoose.Schema.Types.Mixed },
+  createdAt: { type: Date, default: Date.now }
 });
