@@ -74,7 +74,14 @@ export class SaveResumeService {
       throw new BadRequestException('Resume already exists');
     }
 
-    return this.saveResumeModel.create(saveResume);
+    return this.saveResumeModel.create({
+      name,
+      templateId,
+      userId,
+      data: saveResume.data,
+      rawData: saveResume.rawData,
+      createdAt: new Date()
+    });
   }
 
   async getResume(resumeId: string, token: string) {
