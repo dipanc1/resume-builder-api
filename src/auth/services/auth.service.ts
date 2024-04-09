@@ -39,4 +39,10 @@ export class AuthService {
 
     return { jwt };
   }
+
+  async decodeToken(token: string) {
+    const tokenString = token.split(' ')[1];
+    const userDetails = this.jwtService.decode(tokenString);
+    return userDetails.email;
+  }
 }

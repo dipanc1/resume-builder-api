@@ -11,10 +11,6 @@ export class SaveResumeBody {
 
   @IsString()
   @IsNotEmpty()
-  userId: string;
-
-  @IsString()
-  @IsNotEmpty()
   data: string;
 
   @IsString()

@@ -6,6 +6,9 @@ import { SaveResumeSchema } from './schema/save-resume.schema';
 import { TemplateSchema } from './schema/template.schema';
 import { SaveResumeService } from './services/save-resume.service';
 import { UserSchema } from 'src/auth/schemas/user.schema';
+import { AuthModule } from 'src/auth/auth.module';
+import { AuthService } from 'src/auth/services/auth.service';
+import { JwtService } from '@nestjs/jwt';
 
 @Module({
   imports: [
@@ -13,9 +16,10 @@ import { UserSchema } from 'src/auth/schemas/user.schema';
       { name: MODELS.RESUME, schema: SaveResumeSchema },
       { name: MODELS.TEMPLATE, schema: TemplateSchema },
       { name: MODELS.USER, schema: UserSchema }
-    ])
+    ]),
+    AuthModule
   ],
   controllers: [SaveResumeController],
-  providers: [SaveResumeService]
+  providers: [SaveResumeService, AuthService, JwtService]
 })
 export class SaveResumeModule {}
