@@ -219,6 +219,30 @@ export class SaveResumeService {
     return resume;
   }
 
+  async getAllResumes(token: string) {
+    const email = await this.authService.decodeToken(token);
+
+    const userDetails = await this.userModel.findOne({
+      email
+    });
+
+    if (!userDetails) {
+      throw new BadRequestException('User not found');
+    }
+
+    const resumes = await this.saveResumeModel
+      .find({
+        userId: userDetails._id
+      })
+      .populate('templateId');
+
+    if (!resumes) {
+      throw new BadRequestException('No resumes found');
+    }
+
+    return resumes;
+  }
+
   async saveTemplate(saveTemplate: TemplateBody) {
     const { imageUrl, price } = saveTemplate;
     const template = await this.templateModel.findOne({
@@ -239,5 +263,15 @@ export class SaveResumeService {
     };
 
     return this.templateModel.create(payload);
+  }
+
+  async getTemplates() {
+    const templates = await this.templateModel.find();
+
+    if (!templates) {
+      throw new BadRequestException('No templates found');
+    }
+
+    return templates;
   }
 }

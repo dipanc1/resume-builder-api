@@ -55,8 +55,19 @@ export class SaveResumeController {
     return this.saveResumeService.deleteResume(resumeId, token);
   }
 
+  @Get('resumes/getAll')
+  @UseGuards(JwtGuard)
+  getAllResumes(@Headers('authorization') token: string) {
+    return this.saveResumeService.getAllResumes(token);
+  }
+
   @Post('template')
   saveTemplate(@Body() saveTemplate: TemplateBody) {
     return this.saveResumeService.saveTemplate(saveTemplate);
+  }
+
+  @Get('template/getAll')
+  getTemplates() {
+    return this.saveResumeService.getTemplates();
   }
 }
