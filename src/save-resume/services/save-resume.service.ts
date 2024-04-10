@@ -179,7 +179,7 @@ export class SaveResumeService {
       throw new BadRequestException('Resume not found');
     }
 
-    const deleted = this.saveResumeModel.deleteOne({
+    const deleted = await this.saveResumeModel.deleteOne({
       _id: resumeId
     });
 
