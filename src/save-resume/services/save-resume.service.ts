@@ -84,6 +84,114 @@ export class SaveResumeService {
     });
   }
 
+  async updateResume(
+    resumeId: string,
+    saveResume: SaveResumeBody,
+    token: string
+  ) {
+    if (!isValidObjectId(resumeId)) {
+      throw new BadRequestException('Invalid resume id');
+    }
+
+    const email = await this.authService.decodeToken(token);
+
+    const userDetails = await this.userModel.findOne({
+      email
+    });
+
+    if (!userDetails) {
+      throw new BadRequestException('User not found');
+    }
+
+    const resume = await this.saveResumeModel.findOne({
+      _id: resumeId,
+      userId: userDetails._id
+    });
+
+    if (!resume) {
+      throw new BadRequestException('Resume not found');
+    }
+
+    const { templateId, name } = saveResume;
+
+    if (!templateId || !name) {
+      throw new BadRequestException('Invalid request');
+    }
+
+    if (!checkNameRegex(name)) {
+      throw new BadRequestException('Invalid resume name');
+    }
+
+    if (!isValidObjectId(templateId)) {
+      throw new BadRequestException('Invalid template id');
+    }
+
+    const template = await this.templateModel.findOne({
+      _id: templateId
+    });
+
+    if (!template) {
+      throw new BadRequestException('Template not found');
+    }
+
+    const editedResume = await this.saveResumeModel.updateOne(
+      {
+        _id: resumeId
+      },
+      {
+        name,
+        templateId,
+        data: saveResume.data,
+        rawData: saveResume.rawData
+      }
+    );
+
+    if (editedResume) {
+      return await this.saveResumeModel.findOne({
+        _id: resumeId
+      });
+    }
+
+    throw new BadRequestException('Failed to update resume');
+  }
+
+  async deleteResume(resumeId: string, token: string) {
+    if (!isValidObjectId(resumeId)) {
+      throw new BadRequestException('Invalid resume id');
+    }
+
+    const email = await this.authService.decodeToken(token);
+
+    const userDetails = await this.userModel.findOne({
+      email
+    });
+
+    if (!userDetails) {
+      throw new BadRequestException('User not found');
+    }
+
+    const resume = await this.saveResumeModel.findOne({
+      _id: resumeId,
+      userId: userDetails._id
+    });
+
+    if (!resume) {
+      throw new BadRequestException('Resume not found');
+    }
+
+    const deleted = this.saveResumeModel.deleteOne({
+      _id: resumeId
+    });
+
+    if (deleted) {
+      return {
+        message: 'Resume deleted successfully'
+      };
+    }
+
+    throw new BadRequestException('Failed to delete resume');
+  }
+
   async getResume(resumeId: string, token: string) {
     if (!isValidObjectId(resumeId)) {
       throw new BadRequestException('Invalid resume id');

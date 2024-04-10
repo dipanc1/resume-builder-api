@@ -1,10 +1,12 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Headers,
   Param,
   Post,
+  Put,
   UseGuards
 } from '@nestjs/common';
 import { SaveResumeService } from '../services/save-resume.service';
@@ -32,6 +34,25 @@ export class SaveResumeController {
     @Headers('authorization') token: string
   ) {
     return this.saveResumeService.getResume(resumeId, token);
+  }
+
+  @Put(':resumeId')
+  @UseGuards(JwtGuard)
+  updateResume(
+    @Param('resumeId') resumeId: string,
+    @Body() saveResume: SaveResumeBody,
+    @Headers('authorization') token: string
+  ) {
+    return this.saveResumeService.updateResume(resumeId, saveResume, token);
+  }
+
+  @Delete(':resumeId')
+  @UseGuards(JwtGuard)
+  deleteResume(
+    @Param('resumeId') resumeId: string,
+    @Headers('authorization') token: string
+  ) {
+    return this.saveResumeService.deleteResume(resumeId, token);
   }
 
   @Post('template')
