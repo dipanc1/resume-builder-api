@@ -1,12 +1,19 @@
-import { Controller, Get, Req, Res, UseGuards } from '@nestjs/common';
+import { Controller, Get, Headers, Req, Res, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 
 import { GoogleOAuthGuard } from '../guards/google-oauth.guard';
 import { AuthService } from '../services/auth.service';
+import { JwtGuard } from '../guards/jwt-auth.guard';
 
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
+  @Get()
+  @UseGuards(JwtGuard)
+  user(@Headers('authorization') token: string) {
+    return this.authService.getUser(token);
+  }
+
   @Get('linkedin')
   @UseGuards(AuthGuard('linkedin'))
   linkedinLogin() {

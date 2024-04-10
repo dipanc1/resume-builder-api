@@ -13,6 +13,13 @@ export class AuthService {
     private jwtService: JwtService
   ) {}
 
+  async getUser(token: string) {
+    const email = await this.decodeToken(token);
+    return await this.userModel.findOne({
+      email
+    });
+  }
+
   async login(user: UserBody) {
     return user;
   }
