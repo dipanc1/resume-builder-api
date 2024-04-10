@@ -35,14 +35,16 @@ export class AuthController {
 
   @Get('google-callback')
   @UseGuards(GoogleOAuthGuard)
-  async googleCallback(@Req() req, @Res() res) {
+  async googleCallback(@Req() req: any, @Res() res: any) {
     // Handle the Google callback and authenticate the user.
     const token = await this.authService.oAuthLogin(req.user);
+    const url = `${process.env.REDIRECT_URI}/create?token=${token.jwt}`;
+
     if (this.authService.validateUser(req.user.email)) {
-      return res.redirect('http://localhost:3000/create?token=' + token.jwt);
+      return res.redirect(url);
     } else {
       this.authService.createUser(req.user);
-      return res.redirect('http://localhost:3000/create?token=' + token.jwt);
+      return res.redirect(url);
     }
   }
 }
