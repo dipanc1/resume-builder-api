@@ -38,7 +38,7 @@ export class AuthController {
   async googleCallback(@Req() req: any, @Res() res: any) {
     // Handle the Google callback and authenticate the user.
     const token = await this.authService.oAuthLogin(req.user);
-    const url = `${process.env.REDIRECT_URI}/create?token=${token.jwt}`;
+    const url = `${process.env.REDIRECT_URI}/builder?token=${token.jwt}`;
 
     if (this.authService.validateUser(req.user.email)) {
       return res.redirect(url);

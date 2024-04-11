@@ -234,7 +234,8 @@ export class SaveResumeService {
       .find({
         userId: userDetails._id
       })
-      .populate('templateId');
+      .populate('templateId')
+      .populate('userId');
 
     if (!resumes) {
       throw new BadRequestException('No resumes found');
