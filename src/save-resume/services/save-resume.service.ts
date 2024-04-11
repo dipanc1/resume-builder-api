@@ -248,7 +248,9 @@ export class SaveResumeService {
     );
   }
 
-  saveTemplate(saveTemplate: TemplateBody): Observable<Template> {
+  saveTemplate(
+    saveTemplate: TemplateBody
+  ): Observable<Template | BadRequestException> {
     const { imageUrl, price } = saveTemplate;
     from(
       this.templateModel.findOne({
@@ -282,7 +284,7 @@ export class SaveResumeService {
     );
   }
 
-  getTemplates(): Observable<Template[]> {
+  getTemplates(): Observable<Template[] | BadRequestException> {
     return from(this.templateModel.find()).pipe(
       map(templates => {
         if (!templates) {

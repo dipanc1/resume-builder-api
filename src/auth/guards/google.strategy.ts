@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Strategy, VerifyCallback } from 'passport-google-oauth20';
 import { PassportStrategy } from '@nestjs/passport';
 import { AuthService } from '../services/auth.service';
+import { from } from 'rxjs';
 
 @Injectable()
 export class GooglePassportStrategy extends PassportStrategy(Strategy) {
@@ -29,11 +30,12 @@ export class GooglePassportStrategy extends PassportStrategy(Strategy) {
       accessToken
     };
 
-    const existingUser = await this.authService.validateUser(user.email);
+    from(this.authService.validateUser(user.email)).subscribe(existingUser => {
+      if (!existingUser) {
+        this.authService.createUser(user);
+      }
+    });
 
-    if (!existingUser) {
-      await this.authService.createUser(user);
-    }
     done(null, user);
   }
 }

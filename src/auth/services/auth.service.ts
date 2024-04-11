@@ -5,6 +5,7 @@ import { UserBody } from '../models/user-body.class';
 import { User } from '../models/user.interface';
 import { InjectModel } from '@nestjs/mongoose';
 import { JwtService } from '@nestjs/jwt';
+import { Observable, from, of, switchMap } from 'rxjs';
 
 @Injectable()
 export class AuthService {
@@ -13,41 +14,52 @@ export class AuthService {
     private jwtService: JwtService
   ) {}
 
-  async getUser(token: string) {
-    const email = await this.decodeToken(token);
-    return await this.userModel.findOne({
-      email
-    });
+  getUser(token: string): Observable<User> {
+    return from(this.decodeToken(token)).pipe(
+      switchMap(email => {
+        return from(this.validateUser(email));
+      })
+    );
   }
 
-  async login(user: UserBody) {
-    return user;
+  login(user: UserBody): Observable<User> {
+    return from(this.validateUser(user.email)).pipe(
+      switchMap(user => {
+        if (!user) {
+          throw new Error('User not found');
+        }
+        return of(user);
+      })
+    );
   }
 
-  async validateUser(email: string) {
-    return await this.userModel.findOne({ email });
+  validateUser(email: string): Observable<User> {
+    return from(this.userModel.findOne({ email })).pipe(
+      switchMap(user => {
+        return of(user);
+      })
+    );
   }
 
-  async createUser(user: UserBody) {
-    const newUser = new this.userModel(user);
-    return await newUser.save();
+  createUser(user: UserBody): Observable<User> {
+    return from(this.userModel.create(user));
   }
 
-  async oAuthLogin(user: UserBody) {
-    if (!user) {
-      throw new Error('User not found!!!');
-    }
-
-    const payload = {
-      email: user.email
-    };
-
-    const jwt = await this.jwtService.sign(payload);
-
-    return { jwt };
+  oAuthLogin(user: UserBody): Observable<string> {
+    return from(this.validateUser(user.email)).pipe(
+      switchMap(user => {
+        if (!user) {
+          return this.createUser(user);
+        }
+        return of(user);
+      }),
+      switchMap(user => {
+        return of(this.jwtService.sign({ email: user.email }));
+      })
+    );
   }
 
-  async decodeToken(token: string) {
+  decodeToken(token: string): Observable<string> {
     const tokenString = token.split(' ')[1];
     const userDetails = this.jwtService.decode(tokenString);
     return userDetails.email;

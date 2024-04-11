@@ -4,6 +4,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { GoogleOAuthGuard } from '../guards/google-oauth.guard';
 import { AuthService } from '../services/auth.service';
 import { JwtGuard } from '../guards/jwt-auth.guard';
+import { from } from 'rxjs';
 
 @Controller('auth')
 export class AuthController {
@@ -37,14 +38,21 @@ export class AuthController {
   @UseGuards(GoogleOAuthGuard)
   async googleCallback(@Req() req: any, @Res() res: any) {
     // Handle the Google callback and authenticate the user.
-    const token = await this.authService.oAuthLogin(req.user);
-    const url = `${process.env.REDIRECT_URI}/builder?token=${token.jwt}`;
+    const url = `${process.env.REDIRECT_URI}/builder?token=`;
 
-    if (this.authService.validateUser(req.user.email)) {
-      return res.redirect(url);
-    } else {
-      this.authService.createUser(req.user);
-      return res.redirect(url);
-    }
+    from(this.authService.validateUser(req.user.email)).subscribe(
+      existingUser => {
+        if (!existingUser) {
+          this.authService.createUser(req.user).subscribe(() => {
+            this.authService.oAuthLogin(req.user).subscribe(token => {
+              res.redirect(url + token);
+            });
+          });
+        }
+        this.authService.oAuthLogin(req.user).subscribe(token => {
+          res.redirect(url + token);
+        });
+      }
+    );
   }
 }
