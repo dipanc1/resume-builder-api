@@ -59,9 +59,9 @@ export class AuthService {
     );
   }
 
-  decodeToken(token: string): Observable<string> {
+  async decodeToken(token: string) {
     const tokenString = token.split(' ')[1];
-    const userDetails = this.jwtService.decode(tokenString);
+    const userDetails = await this.jwtService.decode(tokenString);
     return userDetails.email;
   }
 }
