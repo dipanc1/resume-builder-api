@@ -1,4 +1,5 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, HttpStatus, Injectable } from '@nestjs/common';
+import { Observable, from, map, switchMap } from 'rxjs';
 
 import { Model, isValidObjectId } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
@@ -6,12 +7,15 @@ import { InjectModel } from '@nestjs/mongoose';
 import { SaveResume } from '../models/save-resume.interface';
 import { Template } from '../models/template.interface';
 
-import { MODELS, checkNameRegex } from 'src/constants';
+import { ResponseDto } from 'src/helpers/common/response.dto';
+import { User } from 'src/auth/models/user.interface';
 
 import { SaveResumeBody } from '../models/save-resume-body.class';
 import { TemplateBody } from '../models/template-body.class';
-import { User } from 'src/auth/models/user.interface';
+
 import { AuthService } from 'src/auth/services/auth.service';
+
+import { MODELS, checkNameRegex } from 'src/constants';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const kebabCase = require('lodash.kebabcase');
@@ -25,234 +29,238 @@ export class SaveResumeService {
     private authService: AuthService
   ) {}
 
-  async saveResume(saveResume: SaveResumeBody, token: string) {
-    const email = await this.authService.decodeToken(token);
-
-    const userDetails = await this.userModel.findOne({
-      email
-    });
-
-    if (!userDetails) {
-      throw new BadRequestException('User not found');
-    }
-
-    const userId = userDetails._id;
-
-    const { templateId, name } = saveResume;
-
-    if (!userId || !templateId || !name) {
-      throw new BadRequestException('Invalid request');
-    }
-
-    if (!checkNameRegex(name)) {
-      throw new BadRequestException('Invalid resume name');
-    }
-
-    if (!isValidObjectId(templateId)) {
+  saveResume(
+    saveResume: SaveResumeBody,
+    token: string
+  ): Observable<SaveResume | BadRequestException> {
+    if (!isValidObjectId(saveResume.templateId)) {
       throw new BadRequestException('Invalid template id');
     }
 
-    if (!isValidObjectId(userId)) {
-      throw new BadRequestException('Invalid user id');
-    }
+    return from(this.authService.decodeToken(token)).pipe(
+      switchMap(email => {
+        return from(this.userModel.findOne({ email })).pipe(
+          switchMap(user => {
+            if (!user) {
+              throw new BadRequestException('User not found');
+            }
 
-    const template = await this.templateModel.findOne({
-      _id: templateId
-    });
+            if (!checkNameRegex(saveResume.name)) {
+              throw new BadRequestException('Invalid resume name');
+            }
 
-    if (!template) {
-      throw new BadRequestException('Template not found');
-    }
+            return from(
+              this.templateModel.findOne({ _id: saveResume.templateId })
+            ).pipe(
+              switchMap(template => {
+                if (!template) {
+                  throw new BadRequestException('Template not found');
+                }
 
-    const resume = await this.saveResumeModel.findOne({
-      name,
-      templateId,
-      userId
-    });
+                return from(
+                  this.saveResumeModel.create({
+                    name: saveResume.name,
+                    data: saveResume.data,
+                    rawData: saveResume.rawData,
+                    templateId: saveResume.templateId,
+                    userId: user._id
+                  })
+                ).pipe(
+                  map(resume => {
+                    if (!resume) {
+                      throw new BadRequestException('Failed to save resume');
+                    }
 
-    if (resume) {
-      throw new BadRequestException('Resume already exists');
-    }
-
-    return this.saveResumeModel.create({
-      name,
-      templateId,
-      userId,
-      data: saveResume.data,
-      rawData: saveResume.rawData,
-      createdAt: new Date()
-    });
+                    return resume as SaveResume;
+                  })
+                );
+              })
+            );
+          })
+        );
+      })
+    );
   }
 
-  async updateResume(
+  updateResume(
     resumeId: string,
     saveResume: SaveResumeBody,
     token: string
-  ) {
-    if (!isValidObjectId(resumeId)) {
-      throw new BadRequestException('Invalid resume id');
+  ): Observable<SaveResume | BadRequestException> {
+    if (!isValidObjectId(resumeId) || !isValidObjectId(saveResume.templateId)) {
+      throw new BadRequestException(
+        `Invalid ${!isValidObjectId(resumeId) ? 'resume' : 'template'} id`
+      );
     }
 
-    const email = await this.authService.decodeToken(token);
-
-    const userDetails = await this.userModel.findOne({
-      email
-    });
-
-    if (!userDetails) {
-      throw new BadRequestException('User not found');
-    }
-
-    const resume = await this.saveResumeModel.findOne({
-      _id: resumeId,
-      userId: userDetails._id
-    });
-
-    if (!resume) {
-      throw new BadRequestException('Resume not found');
-    }
-
-    const { templateId, name } = saveResume;
-
-    if (!templateId || !name) {
-      throw new BadRequestException('Invalid request');
-    }
-
-    if (!checkNameRegex(name)) {
+    if (!checkNameRegex(saveResume.name)) {
       throw new BadRequestException('Invalid resume name');
     }
 
-    if (!isValidObjectId(templateId)) {
-      throw new BadRequestException('Invalid template id');
-    }
+    return from(this.authService.decodeToken(token)).pipe(
+      switchMap(email => {
+        return from(this.userModel.findOne({ email })).pipe(
+          switchMap(user => {
+            if (!user) {
+              throw new BadRequestException('User not found');
+            }
 
-    const template = await this.templateModel.findOne({
-      _id: templateId
-    });
+            return from(
+              this.saveResumeModel
+                .findOneAndUpdate(
+                  {
+                    _id: resumeId,
+                    userId: user._id
+                  },
+                  {
+                    name: saveResume.name,
+                    data: saveResume.data,
+                    rawData: saveResume.rawData
+                  },
+                  { new: true }
+                )
+                .populate('templateId', '-users')
+                .populate('userId')
+            ).pipe(
+              map(resume => {
+                if (!resume) {
+                  throw new BadRequestException(
+                    'Failed to update resume, resume not found'
+                  );
+                }
 
-    if (!template) {
-      throw new BadRequestException('Template not found');
-    }
-
-    const editedResume = await this.saveResumeModel.updateOne(
-      {
-        _id: resumeId
-      },
-      {
-        name,
-        templateId,
-        data: saveResume.data,
-        rawData: saveResume.rawData
-      }
-    );
-
-    if (editedResume) {
-      return await this.saveResumeModel.findOne({
-        _id: resumeId
-      });
-    }
-
-    throw new BadRequestException('Failed to update resume');
-  }
-
-  async deleteResume(resumeId: string, token: string) {
-    if (!isValidObjectId(resumeId)) {
-      throw new BadRequestException('Invalid resume id');
-    }
-
-    const email = await this.authService.decodeToken(token);
-
-    const userDetails = await this.userModel.findOne({
-      email
-    });
-
-    if (!userDetails) {
-      throw new BadRequestException('User not found');
-    }
-
-    const resume = await this.saveResumeModel.findOne({
-      _id: resumeId,
-      userId: userDetails._id
-    });
-
-    if (!resume) {
-      throw new BadRequestException('Resume not found');
-    }
-
-    const deleted = await this.saveResumeModel.deleteOne({
-      _id: resumeId
-    });
-
-    if (deleted) {
-      return {
-        message: 'Resume deleted successfully'
-      };
-    }
-
-    throw new BadRequestException('Failed to delete resume');
-  }
-
-  async getResume(resumeId: string, token: string) {
-    if (!isValidObjectId(resumeId)) {
-      throw new BadRequestException('Invalid resume id');
-    }
-
-    const email = await this.authService.decodeToken(token);
-
-    const userDetails = await this.userModel.findOne({
-      email
-    });
-
-    if (!userDetails) {
-      throw new BadRequestException('User not found');
-    }
-
-    const resume = await this.saveResumeModel.findOne({
-      _id: resumeId,
-      userId: userDetails._id
-    });
-
-    if (!resume) {
-      throw new BadRequestException('Resume not found');
-    }
-
-    return resume;
-  }
-
-  async getAllResumes(token: string) {
-    const email = await this.authService.decodeToken(token);
-
-    const userDetails = await this.userModel.findOne({
-      email
-    });
-
-    if (!userDetails) {
-      throw new BadRequestException('User not found');
-    }
-
-    const resumes = await this.saveResumeModel
-      .find({
-        userId: userDetails._id
+                return resume as SaveResume;
+              })
+            );
+          })
+        );
       })
-      .populate('templateId')
-      .populate('userId');
-
-    if (!resumes) {
-      throw new BadRequestException('No resumes found');
-    }
-
-    return resumes;
+    );
   }
 
-  async saveTemplate(saveTemplate: TemplateBody) {
-    const { imageUrl, price } = saveTemplate;
-    const template = await this.templateModel.findOne({
-      name: saveTemplate.name
-    });
-
-    if (template) {
-      throw new BadRequestException('Template already exists');
+  deleteResume(
+    resumeId: string,
+    token: string
+  ): Observable<ResponseDto | BadRequestException> {
+    if (!isValidObjectId(resumeId)) {
+      throw new BadRequestException('Invalid resume id');
     }
+
+    return from(this.authService.decodeToken(token)).pipe(
+      switchMap(email => {
+        return from(this.userModel.findOne({ email })).pipe(
+          switchMap(user => {
+            if (!user) {
+              throw new BadRequestException('User not found');
+            }
+
+            return from(
+              this.saveResumeModel.deleteOne({
+                _id: resumeId,
+                userId: user._id
+              })
+            ).pipe(
+              map(resume => {
+                if (!resume) {
+                  throw new BadRequestException('Failed to delete resume');
+                }
+
+                return new ResponseDto(
+                  HttpStatus.OK,
+                  'Resume deleted successfully',
+                  null
+                );
+              })
+            );
+          })
+        );
+      })
+    );
+  }
+
+  getResume(
+    resumeId: string,
+    token: string
+  ): Observable<SaveResume | BadRequestException> {
+    if (!isValidObjectId(resumeId)) {
+      throw new BadRequestException('Invalid resume id');
+    }
+
+    return from(this.authService.decodeToken(token)).pipe(
+      switchMap(email => {
+        return from(this.userModel.findOne({ email })).pipe(
+          switchMap(user => {
+            if (!user) {
+              throw new BadRequestException('User not found');
+            }
+
+            return from(
+              this.saveResumeModel
+                .findOne({
+                  _id: resumeId,
+                  userId: user._id
+                })
+                .populate('templateId')
+                .populate('userId')
+            ).pipe(
+              map(resume => {
+                if (!resume) {
+                  throw new BadRequestException('Resume not found');
+                }
+
+                return resume as SaveResume;
+              })
+            );
+          })
+        );
+      })
+    );
+  }
+
+  getAllResumes(token: string): Observable<SaveResume[] | BadRequestException> {
+    return from(this.authService.decodeToken(token)).pipe(
+      switchMap(email => {
+        return from(this.userModel.findOne({ email })).pipe(
+          switchMap(user => {
+            if (!user) {
+              throw new BadRequestException('User not found');
+            }
+
+            return from(
+              this.saveResumeModel
+                .find({
+                  userId: user._id
+                })
+                .populate('templateId')
+                .populate('userId')
+            ).pipe(
+              map(resumes => {
+                if (!resumes) {
+                  throw new BadRequestException('No resumes found');
+                }
+
+                return resumes as SaveResume[];
+              })
+            );
+          })
+        );
+      })
+    );
+  }
+
+  saveTemplate(saveTemplate: TemplateBody): Observable<Template> {
+    const { imageUrl, price } = saveTemplate;
+    from(
+      this.templateModel.findOne({
+        name: saveTemplate.name
+      })
+    ).pipe(
+      map(template => {
+        if (template) {
+          throw new BadRequestException('Template already exists');
+        }
+      })
+    );
 
     const name = kebabCase(saveTemplate.name);
 
@@ -263,16 +271,26 @@ export class SaveResumeService {
       createdAt: new Date()
     };
 
-    return this.templateModel.create(payload);
+    return from(this.templateModel.create(payload)).pipe(
+      map(template => {
+        if (!template) {
+          throw new BadRequestException('Failed to save template');
+        }
+
+        return template as Template;
+      })
+    );
   }
 
-  async getTemplates() {
-    const templates = await this.templateModel.find();
+  getTemplates(): Observable<Template[]> {
+    return from(this.templateModel.find()).pipe(
+      map(templates => {
+        if (!templates) {
+          throw new BadRequestException('No templates found');
+        }
 
-    if (!templates) {
-      throw new BadRequestException('No templates found');
-    }
-
-    return templates;
+        return templates as Template[];
+      })
+    );
   }
 }
