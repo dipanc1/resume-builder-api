@@ -18,6 +18,7 @@ import { Observable } from 'rxjs';
 import { Template } from '../models/template.interface';
 import { SaveResume } from '../models/save-resume.interface';
 import { ResponseDto } from 'src/helpers/common/response.dto';
+import { HeaderApiKeyGuard } from 'src/auth/guards/auth-header-api-key.guard';
 
 @Controller('save-resume')
 export class SaveResumeController {
@@ -69,6 +70,7 @@ export class SaveResumeController {
   }
 
   @Post('template')
+  @UseGuards(HeaderApiKeyGuard)
   saveTemplate(
     @Body() saveTemplate: TemplateBody
   ): Observable<Template | BadRequestException> {

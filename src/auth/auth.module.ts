@@ -14,6 +14,7 @@ import { MODELS } from 'src/constants';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtGuard } from './guards/jwt-auth.guard';
 import { JwtGuardStrategy } from './guards/jwt-auth.strategy';
+import { HeaderApiKeyStrategy } from './guards/auth-header-api-key.strategy';
 
 @Module({
   imports: [
@@ -32,9 +33,10 @@ import { JwtGuardStrategy } from './guards/jwt-auth.strategy';
   controllers: [AuthController],
   providers: [
     LinkedInPassportStrategy,
+    GooglePassportStrategy,
+    HeaderApiKeyStrategy,
     JwtGuardStrategy,
     JwtGuard,
-    GooglePassportStrategy,
     AuthService
   ]
 })
