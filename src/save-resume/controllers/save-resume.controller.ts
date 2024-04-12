@@ -79,4 +79,21 @@ export class SaveResumeController {
   getTemplates(): Observable<Template[] | BadRequestException> {
     return this.saveResumeService.getTemplates();
   }
+
+  @Get('template/myTemplates')
+  @UseGuards(JwtGuard)
+  getTemplate(
+    @Headers('authorization') token: string
+  ): Observable<Template[] | BadRequestException> {
+    return this.saveResumeService.getTemplate(token);
+  }
+
+  @Put('template/purchase/:templateId')
+  @UseGuards(JwtGuard)
+  purchaseTemplate(
+    @Param('templateId') templateId: string,
+    @Headers('authorization') token: string
+  ): Observable<Template | BadRequestException> {
+    return this.saveResumeService.purchaseTemplate(templateId, token);
+  }
 }

@@ -251,10 +251,10 @@ export class SaveResumeService {
   saveTemplate(
     saveTemplate: TemplateBody
   ): Observable<Template | BadRequestException> {
-    const { imageUrl, price } = saveTemplate;
+    const { imageUrl, price, name } = saveTemplate;
     from(
       this.templateModel.findOne({
-        name: saveTemplate.name
+        name
       })
     ).pipe(
       map(template => {
@@ -264,10 +264,11 @@ export class SaveResumeService {
       })
     );
 
-    const name = kebabCase(saveTemplate.name);
+    const slug = kebabCase(name);
 
     const payload = {
       name,
+      slug,
       imageUrl,
       price,
       createdAt: new Date()
@@ -292,6 +293,75 @@ export class SaveResumeService {
         }
 
         return templates as Template[];
+      })
+    );
+  }
+
+  getTemplate(token: string): Observable<Template[] | BadRequestException> {
+    return from(this.authService.decodeToken(token)).pipe(
+      switchMap(email => {
+        return from(this.userModel.findOne({ email })).pipe(
+          switchMap(user => {
+            if (!user) {
+              throw new BadRequestException('User not found');
+            }
+
+            return from(
+              this.templateModel.find({
+                users: { $in: [user._id] }
+              })
+            ).pipe(
+              map(templates => {
+                if (!templates) {
+                  throw new BadRequestException('No templates found');
+                }
+
+                return templates as Template[];
+              })
+            );
+          })
+        );
+      })
+    );
+  }
+
+  purchaseTemplate(
+    templateId: string,
+    token: string
+  ): Observable<Template | BadRequestException> {
+    if (!isValidObjectId(templateId)) {
+      throw new BadRequestException('Invalid template id');
+    }
+
+    return from(this.authService.decodeToken(token)).pipe(
+      switchMap(email => {
+        return from(this.userModel.findOne({ email })).pipe(
+          switchMap(user => {
+            if (!user) {
+              throw new BadRequestException('User not found');
+            }
+
+            return from(
+              this.templateModel.findOneAndUpdate(
+                {
+                  _id: templateId
+                },
+                {
+                  $addToSet: { users: user._id }
+                },
+                { new: true }
+              )
+            ).pipe(
+              map(template => {
+                if (!template) {
+                  throw new BadRequestException('Failed to purchase template');
+                }
+
+                return template as Template;
+              })
+            );
+          })
+        );
       })
     );
   }
