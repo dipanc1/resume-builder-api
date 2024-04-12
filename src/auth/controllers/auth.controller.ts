@@ -36,7 +36,7 @@ export class AuthController {
 
   @Get('google-callback')
   @UseGuards(GoogleOAuthGuard)
-  async googleCallback(@Req() req: any, @Res() res: any) {
+  googleCallback(@Req() req: any, @Res() res: any) {
     // Handle the Google callback and authenticate the user.
     const url = `${process.env.REDIRECT_URI}/builder?token=`;
 
