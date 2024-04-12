@@ -252,35 +252,28 @@ export class SaveResumeService {
     saveTemplate: TemplateBody
   ): Observable<Template | BadRequestException> {
     const { imageUrl, price, name } = saveTemplate;
-    from(
-      this.templateModel.findOne({
-        name
-      })
-    ).pipe(
-      map(template => {
+    return from(this.templateModel.findOne({ slug: kebabCase(name) })).pipe(
+      switchMap(template => {
         if (template) {
           throw new BadRequestException('Template already exists');
         }
-      })
-    );
 
-    const slug = kebabCase(name);
+        return from(
+          this.templateModel.create({
+            imageUrl,
+            price,
+            name,
+            slug: kebabCase(name)
+          })
+        ).pipe(
+          map(template => {
+            if (!template) {
+              throw new BadRequestException('Failed to save template');
+            }
 
-    const payload = {
-      name,
-      slug,
-      imageUrl,
-      price,
-      createdAt: new Date()
-    };
-
-    return from(this.templateModel.create(payload)).pipe(
-      map(template => {
-        if (!template) {
-          throw new BadRequestException('Failed to save template');
-        }
-
-        return template as Template;
+            return template as Template;
+          })
+        );
       })
     );
   }
