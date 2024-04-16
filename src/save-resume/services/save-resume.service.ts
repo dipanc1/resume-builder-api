@@ -234,6 +234,7 @@ export class SaveResumeService {
                 })
                 .populate('templateId')
                 .populate('userId')
+                .sort({ updatedAt: -1 })
             ).pipe(
               map(resumes => {
                 if (!resumes) {
