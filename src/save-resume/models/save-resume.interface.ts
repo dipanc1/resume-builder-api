@@ -7,4 +7,5 @@ export interface SaveResume extends Document {
   readonly data: string;
   readonly rawData: string;
   readonly createdAt: Date;
+  readonly updatedAt: Date;
 }
