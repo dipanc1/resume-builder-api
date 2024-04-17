@@ -56,7 +56,9 @@ export class SendResumeController {
     return isFileExtensionSafe(fullFilePath).pipe(
       switchMap((isFileExtensionSafe: boolean) => {
         if (isFileExtensionSafe) {
-          return of(reader.getText(fullFilePath));
+          const data = of(reader.getText(fullFilePath));
+          removeFile(fullFilePath);
+          return data;
         }
         removeFile(fullFilePath);
         throw new BadRequestException(
