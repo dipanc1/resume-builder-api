@@ -39,7 +39,7 @@ export class AuthController {
   googleCallback(@Req() req: any, @Res() res: any) {
     // Handle the Google callback and authenticate the user.
     const url = `${process.env.REDIRECT_URI}/authenticate?token=`;
-
+    console.log(url)
     from(this.authService.validateUser(req.user.email)).subscribe(
       existingUser => {
         if (!existingUser) {
