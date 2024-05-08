@@ -1,3 +1,3 @@
 ## TODO
 
-- [] Test save resume and template API 
+- [*] Test save resume and template API 
