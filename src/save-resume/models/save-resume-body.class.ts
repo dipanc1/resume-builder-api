@@ -16,4 +16,8 @@ export class SaveResumeBody {
   @IsString()
   @IsNotEmpty()
   rawData: string;
+
+  @IsString()
+  @IsNotEmpty()
+  resumeUrl: string;
 }

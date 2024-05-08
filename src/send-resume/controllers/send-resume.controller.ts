@@ -2,8 +2,11 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Get,
   HttpCode,
+  Param,
   Post,
+  StreamableFile,
   UploadedFile,
   UseGuards,
   UseInterceptors
@@ -20,6 +23,9 @@ import {
   saveResumeToStorage
 } from 'src/helpers/resume-storage';
 import { ThrottlerGuard } from '@nestjs/throttler';
+import { ResumeTextBody } from '../models/resume-text-body.class';
+import { createReadStream } from 'fs';
+import { JwtGuard } from 'src/auth/guards/jwt-auth.guard';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const reader = require('any-text');
 
@@ -38,7 +44,7 @@ export class SendResumeController {
   @UseInterceptors(FileInterceptor('resume', saveResumeToStorage))
   uploadResume(
     @UploadedFile() resume: Express.Multer.File
-  ): Observable<string | { error: string }> {
+  ): Observable<ResumeTextBody | { error: string }> {
     const fileName = resume?.filename;
 
     if (!fileName) {
@@ -56,9 +62,10 @@ export class SendResumeController {
     return isFileExtensionSafe(fullFilePath).pipe(
       switchMap((isFileExtensionSafe: boolean) => {
         if (isFileExtensionSafe) {
-          const data = of(reader.getText(fullFilePath));
-          removeFile(fullFilePath);
-          return data;
+          return of({
+            url: `${process.env.DOWNLOAD_UPLOADED_RESUME}/${fileName}`,
+            text: reader.getText(fullFilePath)
+          });
         }
         removeFile(fullFilePath);
         throw new BadRequestException(
@@ -66,5 +73,15 @@ export class SendResumeController {
         );
       })
     );
+  }
+
+  @Get(':fileName')
+  @UseGuards(JwtGuard)
+  getResumeText(
+    @Param() params: { fileName: string }
+  ): Observable<StreamableFile> {
+    const fileName = params.fileName;
+    const filePath = createReadStream(join(process.cwd(), 'uploads', fileName));
+    return of(new StreamableFile(filePath));
   }
 }

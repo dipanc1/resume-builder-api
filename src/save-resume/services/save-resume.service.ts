@@ -63,6 +63,7 @@ export class SaveResumeService {
                     data: saveResume.data,
                     rawData: saveResume.rawData,
                     templateId: saveResume.templateId,
+                    resumeUrl: saveResume.resumeUrl,
                     userId: user._id
                   })
                 ).pipe(

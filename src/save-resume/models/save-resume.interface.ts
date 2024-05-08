@@ -6,6 +6,7 @@ export interface SaveResume extends Document {
   readonly userId: string;
   readonly data: string;
   readonly rawData: string;
+  readonly resumeUrl: string;
   readonly createdAt: Date;
   readonly updatedAt: Date;
 }

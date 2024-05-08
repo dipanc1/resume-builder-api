@@ -16,9 +16,6 @@ import { SaveResumeModule } from './save-resume/save-resume.module';
     ConfigModule.forRoot({
       isGlobal: true
     }),
-    SendResumeModule,
-    SendJobDescriptionModule,
-    AuthModule,
     ThrottlerModule.forRoot([
       {
         ttl: 600000,
@@ -30,6 +27,10 @@ import { SaveResumeModule } from './save-resume/save-resume.module';
         uri: process.env.MONGO_DEV_URI
       })
     }),
+
+    SendResumeModule,
+    SendJobDescriptionModule,
+    AuthModule,
     SaveResumeModule
   ],
   controllers: [AppController],
