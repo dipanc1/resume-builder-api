@@ -13,7 +13,7 @@ import {
 } from '@nestjs/common';
 import { join } from 'path';
 import { SendResumeService } from '../services/send-resume.service';
-import { Observable, of, switchMap } from 'rxjs';
+import { Observable, from, map, of, switchMap } from 'rxjs';
 import { ResumeBody } from '../models/resume-body.class';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
@@ -26,6 +26,7 @@ import { ThrottlerGuard } from '@nestjs/throttler';
 import { ResumeTextBody } from '../models/resume-text-body.class';
 import { createReadStream } from 'fs';
 import { JwtGuard } from 'src/auth/guards/jwt-auth.guard';
+
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const reader = require('any-text');
 
@@ -62,10 +63,14 @@ export class SendResumeController {
     return isFileExtensionSafe(fullFilePath).pipe(
       switchMap((isFileExtensionSafe: boolean) => {
         if (isFileExtensionSafe) {
-          return of({
-            url: `${process.env.DOWNLOAD_UPLOADED_RESUME}/${fileName}`,
-            text: reader.getText(fullFilePath)
-          });
+          return from(reader.getText(fullFilePath)).pipe(
+            map((text: string) => {
+              return {
+                url: `${process.env.DOWNLOAD_UPLOADED_RESUME}/${fileName}`,
+                text: text
+              };
+            })
+          );
         }
         removeFile(fullFilePath);
         throw new BadRequestException(
