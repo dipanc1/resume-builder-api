@@ -5,5 +5,5 @@ export const MODELS = {
 };
 
 export const checkNameRegex = (name: string) => {
-  return name.match(/^[a-zA-Z0-9 ]+$/) && name.length >= 1 && name.length <= 50;
+  return name.length >= 1 && name.length <= 50;
 };
