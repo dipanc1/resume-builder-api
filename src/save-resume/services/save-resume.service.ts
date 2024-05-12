@@ -117,6 +117,7 @@ export class SaveResumeService {
                     name: saveResume.name,
                     data: saveResume.data,
                     rawData: saveResume.rawData,
+                    templateId: saveResume.templateId,
                     updatedAt: new Date()
                   },
                   { new: true }
