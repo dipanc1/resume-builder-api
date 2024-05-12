@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 import { diskStorage } from 'multer';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -33,7 +34,8 @@ export const saveResumeToStorage = {
     destination: './uploads',
     filename: (req, file, cb) => {
       const fileExtension: string = path.extname(file.originalname);
-      const fileName: string = uuidv4() + fileExtension;
+      const fileName: string =
+        uuidv4() + '_' + file.originalname + fileExtension;
       cb(null, fileName);
     }
   }),
