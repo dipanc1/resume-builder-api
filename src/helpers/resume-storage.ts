@@ -3,7 +3,6 @@ import { diskStorage } from 'multer';
 import { v4 as uuidv4 } from 'uuid';
 
 const fs = require('fs');
-const path = require('path');
 const FileType = require('file-type');
 
 import { from, Observable, of, switchMap } from 'rxjs';
@@ -33,9 +32,7 @@ export const saveResumeToStorage = {
   storage: diskStorage({
     destination: './uploads',
     filename: (req, file, cb) => {
-      const fileExtension: string = path.extname(file.originalname);
-      const fileName: string =
-        uuidv4() + '_' + file.originalname + fileExtension;
+      const fileName: string = uuidv4() + '_' + file.originalname;
       cb(null, fileName);
     }
   }),
