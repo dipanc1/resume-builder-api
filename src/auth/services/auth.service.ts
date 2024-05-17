@@ -1,11 +1,15 @@
 import { Injectable } from '@nestjs/common';
+import { Observable, from, of, switchMap } from 'rxjs';
+
+import { JwtService } from '@nestjs/jwt';
+
 import { MODELS } from 'src/constants';
+
 import { Model } from 'mongoose';
+import { InjectModel } from '@nestjs/mongoose';
+
 import { UserBody } from '../models/user-body.class';
 import { User } from '../models/user.interface';
-import { InjectModel } from '@nestjs/mongoose';
-import { JwtService } from '@nestjs/jwt';
-import { Observable, from, of, switchMap } from 'rxjs';
 
 @Injectable()
 export class AuthService {

@@ -1,14 +1,21 @@
 import { Module } from '@nestjs/common';
-import { SaveResumeController } from './controllers/save-resume.controller';
+
+import { JwtService } from '@nestjs/jwt';
+
 import { MongooseModule } from '@nestjs/mongoose';
+
 import { MODELS } from 'src/constants';
+
 import { SaveResumeSchema } from './schema/save-resume.schema';
 import { TemplateSchema } from './schema/template.schema';
-import { SaveResumeService } from './services/save-resume.service';
 import { UserSchema } from 'src/auth/schemas/user.schema';
-import { AuthModule } from 'src/auth/auth.module';
+
+import { SaveResumeService } from './services/save-resume.service';
 import { AuthService } from 'src/auth/services/auth.service';
-import { JwtService } from '@nestjs/jwt';
+
+import { SaveResumeController } from './controllers/save-resume.controller';
+
+import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
   imports: [

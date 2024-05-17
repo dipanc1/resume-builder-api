@@ -10,15 +10,21 @@ import {
   Put,
   UseGuards
 } from '@nestjs/common';
+
+import { Observable } from 'rxjs';
+
+import { JwtGuard } from 'src/auth/guards/jwt-auth.guard';
+import { HeaderApiKeyGuard } from 'src/auth/guards/auth-header-api-key.guard';
+
 import { SaveResumeService } from '../services/save-resume.service';
+
 import { SaveResumeBody } from '../models/save-resume-body.class';
 import { TemplateBody } from '../models/template-body.class';
-import { JwtGuard } from 'src/auth/guards/jwt-auth.guard';
-import { Observable } from 'rxjs';
+
 import { Template } from '../models/template.interface';
 import { SaveResume } from '../models/save-resume.interface';
+
 import { ResponseDto } from 'src/helpers/common/response.dto';
-import { HeaderApiKeyGuard } from 'src/auth/guards/auth-header-api-key.guard';
 
 @Controller('save-resume')
 export class SaveResumeController {

@@ -1,8 +1,12 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
+
 import { Observable, catchError, firstValueFrom, from, switchMap } from 'rxjs';
-import { JobDescriptionBody } from '../models/job-description-body.class';
-import { HttpService } from '@nestjs/axios';
+
 import { AxiosError } from 'axios';
+
+import { HttpService } from '@nestjs/axios';
+
+import { JobDescriptionBody } from '../models/job-description-body.class';
 import { ResumeBody } from 'src/send-resume/models/resume-body.class';
 
 @Injectable()

@@ -3,6 +3,7 @@ import {
   Body,
   Controller,
   Get,
+  Headers,
   HttpCode,
   Param,
   Post,
@@ -10,23 +11,25 @@ import {
   UseGuards,
   UseInterceptors
 } from '@nestjs/common';
-import { join } from 'path';
-import { SendResumeService } from '../services/send-resume.service';
-import { Observable, from, map, switchMap } from 'rxjs';
-import { ResumeBody } from '../models/resume-body.class';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { ThrottlerGuard } from '@nestjs/throttler';
+
+import { join } from 'path';
+import { Observable, from, map, switchMap } from 'rxjs';
+
+import { JwtGuard } from 'src/auth/guards/jwt-auth.guard';
+
 import {
   isFileExtensionSafe,
   isFileSizeLessThanOneMB,
   removeFile
 } from 'src/helpers/resume-storage';
-import { ThrottlerGuard } from '@nestjs/throttler';
+import { saveResumeToR2Storage } from 'src/helpers/save-resume-r2-storage';
+
 import { ResumeTextBody } from '../models/resume-text-body.class';
-import { JwtGuard } from 'src/auth/guards/jwt-auth.guard';
-import {
-  getResumeFromR2Storage,
-  saveResumeToR2Storage
-} from 'src/helpers/save-resume-r2-storage';
+import { ResumeBody } from '../models/resume-body.class';
+
+import { SendResumeService } from '../services/send-resume.service';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const reader = require('any-text');
@@ -87,10 +90,13 @@ export class SendResumeController {
     );
   }
 
-  @Get(':fileName')
+  @Get('get/:fileName')
   @UseGuards(JwtGuard)
-  getResumeText(@Param() params: { fileName: string }): Observable<Uint8Array> {
+  getResume(
+    @Param() params: { fileName: string },
+    @Headers('authorization') token: string
+  ): Observable<Uint8Array> {
     const fileName = params.fileName;
-    return getResumeFromR2Storage(fileName);
+    return this.sendResumeService.getResume(fileName, token);
   }
 }

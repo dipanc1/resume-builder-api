@@ -1,8 +1,11 @@
 import { Body, Controller, Post, UseGuards } from '@nestjs/common';
-import { JobDescriptionBody } from '../models/job-description-body.class';
-import { Observable } from 'rxjs';
-import { SendJobDescriptionService } from '../services/send-job-description.service';
 import { ThrottlerGuard } from '@nestjs/throttler';
+
+import { Observable } from 'rxjs';
+
+import { SendJobDescriptionService } from '../services/send-job-description.service';
+
+import { JobDescriptionBody } from '../models/job-description-body.class';
 import { ResumeBody } from 'src/send-resume/models/resume-body.class';
 
 @Controller('send-job-description')

@@ -1,7 +1,9 @@
 import { Module } from '@nestjs/common';
+
+import { HttpModule } from '@nestjs/axios';
+
 import { SendJobDescriptionService } from './services/send-job-description.service';
 import { SendJobDescriptionController } from './controllers/send-job-description.controller';
-import { HttpModule } from '@nestjs/axios';
 
 @Module({
   imports: [HttpModule],
