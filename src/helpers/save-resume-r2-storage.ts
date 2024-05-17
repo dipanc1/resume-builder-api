@@ -1,0 +1,92 @@
+import {
+  S3Client,
+  GetObjectCommand,
+  PutObjectCommand
+} from '@aws-sdk/client-s3';
+
+import { Observable, from, map, switchMap } from 'rxjs';
+
+/* eslint-disable @typescript-eslint/no-var-requires */
+const fs = require('fs');
+require('dotenv').config();
+
+import { v4 as uuidv4 } from 'uuid';
+
+type validMimeType =
+  | 'application/pdf'
+  | 'application/msword'
+  | 'text/plain'
+  | 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+
+const validMimeTypes: validMimeType[] = [
+  'application/pdf',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'text/plain'
+];
+
+const ACCOUNT_ID = process.env.CLOUDFLARE_ACCOUNT_ID;
+const ACCESS_KEY_ID = process.env.CLOUDFLARE_ACCESS_KEY_ID;
+const SECRET_ACCESS_KEY = process.env.CLOUDFLARE_SECRET_ACCESS_KEY;
+
+const region = process.env.CLOUDLFARE_BUCKET_REGION;
+
+const S3 = new S3Client({
+  region,
+  endpoint: `https://${ACCOUNT_ID}.r2.cloudflarestorage.com`,
+  credentials: {
+    accessKeyId: ACCESS_KEY_ID,
+    secretAccessKey: SECRET_ACCESS_KEY
+  }
+});
+
+export const saveResumeToR2Storage = (
+  resume: Express.Multer.File
+): Observable<string> => {
+  const allowedMimeTypes: validMimeType[] = validMimeTypes;
+
+  if (!allowedMimeTypes.includes(resume.mimetype as validMimeType)) {
+    throw new Error('Invalid file type!');
+  }
+
+  const fileName = uuidv4() + '_' + resume.originalname;
+
+  const uploadParams = {
+    Bucket: process.env.CLOUDLFARE_BUCKET_NAME,
+    Key: fileName,
+    Body: resume.buffer,
+    ContentType: resume.mimetype
+  };
+
+  return from(S3.send(new PutObjectCommand(uploadParams))).pipe(
+    map(() => {
+      fs.writeFileSync(`./uploads/${fileName}`, resume.buffer);
+      return fileName;
+    })
+  );
+};
+
+export const getResumeFromR2Storage = (
+  resumeName: string
+): Observable<Uint8Array> => {
+  const downloadParams = {
+    Bucket: process.env.CLOUDLFARE_BUCKET_NAME,
+    Key: resumeName
+  };
+
+  // return from(S3.send(new GetObjectCommand(downloadParams))).pipe(
+  //   switchMap(response => {
+  //     return from(response.Body.transformToByteArray()).pipe(
+  //       map(buffer => {
+  //         fs.writeFileSync(`./uploads/${resumeName}`, buffer);
+  //       })
+  //     );
+  //   })
+  // );
+
+  return from(S3.send(new GetObjectCommand(downloadParams))).pipe(
+    switchMap(response => {
+      return from(response.Body.transformToByteArray());
+    })
+  );
+};

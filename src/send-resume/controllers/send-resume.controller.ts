@@ -6,26 +6,27 @@ import {
   HttpCode,
   Param,
   Post,
-  StreamableFile,
   UploadedFile,
   UseGuards,
   UseInterceptors
 } from '@nestjs/common';
 import { join } from 'path';
 import { SendResumeService } from '../services/send-resume.service';
-import { Observable, from, map, of, switchMap } from 'rxjs';
+import { Observable, from, map, switchMap } from 'rxjs';
 import { ResumeBody } from '../models/resume-body.class';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
   isFileExtensionSafe,
   isFileSizeLessThanOneMB,
-  removeFile,
-  saveResumeToStorage
+  removeFile
 } from 'src/helpers/resume-storage';
 import { ThrottlerGuard } from '@nestjs/throttler';
 import { ResumeTextBody } from '../models/resume-text-body.class';
-import { createReadStream } from 'fs';
 import { JwtGuard } from 'src/auth/guards/jwt-auth.guard';
+import {
+  getResumeFromR2Storage,
+  saveResumeToR2Storage
+} from 'src/helpers/save-resume-r2-storage';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const reader = require('any-text');
@@ -42,14 +43,14 @@ export class SendResumeController {
 
   @Post('upload')
   @HttpCode(200)
-  @UseInterceptors(FileInterceptor('resume', saveResumeToStorage))
+  @UseInterceptors(FileInterceptor('resume'))
   uploadResume(
     @UploadedFile() resume: Express.Multer.File
   ): Observable<ResumeTextBody | { error: string }> {
-    const fileName = resume?.filename;
+    const fileName = resume.originalname;
 
     if (!fileName) {
-      throw new BadRequestException('File must be a PDF or DOCX file!');
+      throw new BadRequestException('File name is required!');
     }
 
     const fileSize = resume?.size;
@@ -58,23 +59,29 @@ export class SendResumeController {
       throw new BadRequestException('File size must be less than 1MB!');
 
     const uploadsFolderPath = join(process.cwd(), 'uploads');
-    const fullFilePath = join(uploadsFolderPath, '/' + resume.filename);
 
-    return isFileExtensionSafe(fullFilePath).pipe(
-      switchMap((isFileExtensionSafe: boolean) => {
-        if (isFileExtensionSafe) {
-          return from(reader.getText(fullFilePath)).pipe(
-            map((text: string) => {
-              return {
-                url: `${process.env.DOWNLOAD_UPLOADED_RESUME}/${fileName}`,
-                text: text
-              };
-            })
-          );
-        }
-        removeFile(fullFilePath);
-        throw new BadRequestException(
-          'File content does not match the file extension!'
+    return saveResumeToR2Storage(resume).pipe(
+      switchMap(name => {
+        const fullFilePath = join(uploadsFolderPath, '/' + name);
+
+        return isFileExtensionSafe(fullFilePath).pipe(
+          switchMap((isFileExtensionSafe: boolean) => {
+            if (isFileExtensionSafe) {
+              return from(reader.getText(fullFilePath)).pipe(
+                map((text: string) => {
+                  removeFile(fullFilePath);
+                  return {
+                    url: `${name}`,
+                    text: text
+                  };
+                })
+              );
+            }
+            removeFile(fullFilePath);
+            throw new BadRequestException(
+              'File content does not match the file extension!'
+            );
+          })
         );
       })
     );
@@ -82,11 +89,8 @@ export class SendResumeController {
 
   @Get(':fileName')
   @UseGuards(JwtGuard)
-  getResumeText(
-    @Param() params: { fileName: string }
-  ): Observable<StreamableFile> {
+  getResumeText(@Param() params: { fileName: string }): Observable<Uint8Array> {
     const fileName = params.fileName;
-    const filePath = createReadStream(join(process.cwd(), 'uploads', fileName));
-    return of(new StreamableFile(filePath));
+    return getResumeFromR2Storage(fileName);
   }
 }
