@@ -29,7 +29,7 @@ const ACCOUNT_ID = process.env.CLOUDFLARE_ACCOUNT_ID;
 const ACCESS_KEY_ID = process.env.CLOUDFLARE_ACCESS_KEY_ID;
 const SECRET_ACCESS_KEY = process.env.CLOUDFLARE_SECRET_ACCESS_KEY;
 
-const region = process.env.CLOUDLFARE_BUCKET_REGION;
+const region = process.env.CLOUDFLARE_BUCKET_REGION;
 
 const S3 = new S3Client({
   region,
@@ -52,7 +52,7 @@ export const saveResumeToR2Storage = (
   const fileName = uuidv4() + '_' + resume.originalname;
 
   const uploadParams = {
-    Bucket: process.env.CLOUDLFARE_BUCKET_NAME,
+    Bucket: process.env.CLOUDFLARE_BUCKET_NAME,
     Key: fileName,
     Body: resume.buffer,
     ContentType: resume.mimetype
@@ -70,7 +70,7 @@ export const getResumeFromR2Storage = (
   resumeName: string
 ): Observable<Uint8Array> => {
   const downloadParams = {
-    Bucket: process.env.CLOUDLFARE_BUCKET_NAME,
+    Bucket: process.env.CLOUDFLARE_BUCKET_NAME,
     Key: resumeName
   };
 
