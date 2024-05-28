@@ -1,6 +1,13 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 
-import { Observable, catchError, firstValueFrom, from, switchMap } from 'rxjs';
+import {
+  Observable,
+  catchError,
+  firstValueFrom,
+  from,
+  of,
+  switchMap
+} from 'rxjs';
 
 import { HttpService } from '@nestjs/axios';
 import { AxiosError } from 'axios';
@@ -14,7 +21,6 @@ import { ResumeBody } from '../models/resume-body.class';
 import { SaveResume } from 'src/save-resume/models/save-resume.interface';
 import { User } from 'src/auth/models/user.interface';
 
-import { getResumeFromR2Storage } from 'src/helpers/save-resume-r2-storage';
 import { AuthService } from 'src/auth/services/auth.service';
 
 @Injectable()
@@ -55,32 +61,33 @@ export class SendResumeService {
     );
   }
 
-  getResume(fileName: string, token: string): Observable<Uint8Array> {
-    return from(this.authService.decodeToken(token)).pipe(
-      switchMap(email => {
-        return from(this.userModel.findOne({ email })).pipe(
-          switchMap(user => {
-            if (!user) {
-              throw new BadRequestException('User not found');
-            }
+  getResume(fileName: string): Observable<boolean> {
+    return of(!!fileName);
+    // return from(this.authService.decodeToken(token)).pipe(
+    //   switchMap(email => {
+    //     return from(this.userModel.findOne({ email })).pipe(
+    //       switchMap(user => {
+    //         if (!user) {
+    //           throw new BadRequestException('User not found');
+    //         }
 
-            return from(
-              this.saveResumeModel.findOne({
-                resumeUrl: fileName,
-                userId: user._id
-              })
-            ).pipe(
-              switchMap(resume => {
-                if (!resume) {
-                  throw new BadRequestException('Resume not found');
-                }
+    //         return from(
+    //           this.saveResumeModel.findOne({
+    //             resumeUrl: fileName,
+    //             userId: user._id
+    //           })
+    //         ).pipe(
+    //           switchMap(resume => {
+    //             if (!resume) {
+    //               throw new BadRequestException('Resume not found');
+    //             }
 
-                return getResumeFromR2Storage(fileName);
-              })
-            );
-          })
-        );
-      })
-    );
+    //             return of(!!resume);
+    //           })
+    //         );
+    //       })
+    //     );
+    //   })
+    // );
   }
 }
