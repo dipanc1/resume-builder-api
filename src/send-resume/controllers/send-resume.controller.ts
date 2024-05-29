@@ -95,7 +95,8 @@ export class SendResumeController {
   getResume(
     @Param() params: { fileName: string },
     @Headers('authorization') token: string
-  ): Observable<Uint8Array> {
+  ): Observable<boolean> {
+    // Changed in commit id:
     const fileName = params.fileName;
     return this.sendResumeService.getResume(fileName, token);
   }
