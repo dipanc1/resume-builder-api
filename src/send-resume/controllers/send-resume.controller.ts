@@ -98,7 +98,6 @@ export class SendResumeController {
   ): Observable<boolean> {
     // Changed in commit id:
     const fileName = params.fileName;
-    console.log(fileName, token, 'getResume');
     return this.sendResumeService.getResume(fileName, token);
   }
 }
