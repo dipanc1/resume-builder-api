@@ -91,14 +91,14 @@ export class SendResumeController {
   }
 
   @Get('get/:fileName')
-  // @UseGuards(JwtGuard)
+  @UseGuards(JwtGuard)
   getResume(
     @Param() params: { fileName: string },
-    // @Headers('authorization') token: string
+    @Headers('authorization') token: string
   ): Observable<boolean> {
     // Changed in commit id:
     const fileName = params.fileName;
     console.log(fileName);
-    return this.sendResumeService.getResume(fileName);
+    return this.sendResumeService.getResume(fileName, token);
   }
 }

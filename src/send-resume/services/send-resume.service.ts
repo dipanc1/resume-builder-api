@@ -61,33 +61,32 @@ export class SendResumeService {
     );
   }
 
-  getResume(fileName: string): Observable<boolean> {
-    return of(!!fileName);
-    // return from(this.authService.decodeToken(token)).pipe(
-    //   switchMap(email => {
-    //     return from(this.userModel.findOne({ email })).pipe(
-    //       switchMap(user => {
-    //         if (!user) {
-    //           throw new BadRequestException('User not found');
-    //         }
+  getResume(fileName: string, token: string): Observable<boolean> {
+    return from(this.authService.decodeToken(token)).pipe(
+      switchMap(email => {
+        return from(this.userModel.findOne({ email })).pipe(
+          switchMap(user => {
+            if (!user) {
+              throw new BadRequestException('User not found');
+            }
 
-    //         return from(
-    //           this.saveResumeModel.findOne({
-    //             resumeUrl: fileName,
-    //             userId: user._id
-    //           })
-    //         ).pipe(
-    //           switchMap(resume => {
-    //             if (!resume) {
-    //               throw new BadRequestException('Resume not found');
-    //             }
+            return from(
+              this.saveResumeModel.findOne({
+                resumeUrl: fileName,
+                userId: user._id
+              })
+            ).pipe(
+              switchMap(resume => {
+                if (!resume) {
+                  throw new BadRequestException('Resume not found');
+                }
 
-    //             return of(!!resume);
-    //           })
-    //         );
-    //       })
-    //     );
-    //   })
-    // );
+                return of(!!resume);
+              })
+            );
+          })
+        );
+      })
+    );
   }
 }
