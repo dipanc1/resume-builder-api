@@ -50,17 +50,7 @@ export class AuthService {
   }
 
   oAuthLogin(user: UserBody): Observable<string> {
-    return from(this.validateUser(user.email)).pipe(
-      switchMap(user => {
-        if (!user) {
-          return this.createUser(user);
-        }
-        return of(user);
-      }),
-      switchMap(user => {
-        return of(this.jwtService.sign({ email: user.email }));
-      })
-    );
+    return of(this.jwtService.sign({ email: user.email }));
   }
 
   async decodeToken(token: string) {

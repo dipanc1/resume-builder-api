@@ -59,10 +59,16 @@ export const saveResumeToR2Storage = (
   };
 
   return from(S3.send(new PutObjectCommand(uploadParams))).pipe(
-    map(() => {
-      fs.writeFileSync(`./uploads/${fileName}`, resume.buffer);
-      return fileName;
-    })
+    map(
+      () => {
+        fs.writeFileSync(`./uploads/${fileName}`, resume.buffer);
+        return fileName;
+      },
+      (error: string) => {
+        console.log('Error uploading file to R2 storage: ', error);
+        throw new Error(error);
+      }
+    )
   );
 };
 
