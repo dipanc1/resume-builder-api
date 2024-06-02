@@ -1,12 +1,23 @@
-import { Controller, Get, Headers, Req, Res, UseGuards } from '@nestjs/common';
-import { from } from 'rxjs';
+import {
+  Controller,
+  Get,
+  Headers,
+  Query,
+  Req,
+  Res,
+  UseGuards
+} from '@nestjs/common';
+import { Observable, from } from 'rxjs';
 
 import { AuthGuard } from '@nestjs/passport';
 
 import { GoogleOAuthGuard } from '../guards/google-oauth.guard';
 import { JwtGuard } from '../guards/jwt-auth.guard';
+import { HeaderApiKeyGuard } from '../guards/auth-header-api-key.guard';
 
 import { AuthService } from '../services/auth.service';
+
+import { User } from '../models/user.interface';
 
 @Controller('auth')
 export class AuthController {
@@ -15,6 +26,22 @@ export class AuthController {
   @UseGuards(JwtGuard)
   user(@Headers('authorization') token: string) {
     return this.authService.getUser(token);
+  }
+
+  @Get('list')
+  @UseGuards(HeaderApiKeyGuard)
+  listUsers(
+    @Query('pageNumber') pageNumber: string,
+    @Query('pageSize') pageSize: string
+  ): Observable<{
+    users: User[];
+    totalCount: number;
+    totalPages: number;
+    currentPage: number;
+  }> {
+    const skip = parseInt(pageNumber) > 0 ? parseInt(pageNumber) - 1 : 0;
+    const limit = parseInt(pageSize) > 0 ? parseInt(pageSize) : 10;
+    return this.authService.listUsers(skip, limit);
   }
 
   @Get('linkedin')

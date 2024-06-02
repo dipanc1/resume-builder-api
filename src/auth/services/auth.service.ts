@@ -53,6 +53,37 @@ export class AuthService {
     return of(this.jwtService.sign({ email: user.email }));
   }
 
+  listUsers(
+    skip: number,
+    limit: number
+  ): Observable<{
+    users: User[];
+    totalCount: number;
+    totalPages: number;
+    currentPage: number;
+  }> {
+    return from(
+      this.userModel
+        .find()
+        .sort({ createdAt: -1 })
+        .skip(limit * skip)
+        .limit(limit)
+    ).pipe(
+      switchMap(users => {
+        return from(this.userModel.countDocuments()).pipe(
+          switchMap(total => {
+            return of({
+              users: users as User[],
+              totalCount: total,
+              totalPages: Math.ceil(total / limit),
+              currentPage: skip + 1
+            });
+          })
+        );
+      })
+    );
+  }
+
   async decodeToken(token: string) {
     const tokenString = token.split(' ')[1];
     const userDetails = await this.jwtService.decode(tokenString);
