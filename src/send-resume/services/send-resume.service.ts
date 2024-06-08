@@ -23,6 +23,9 @@ import { User } from 'src/auth/models/user.interface';
 
 import { AuthService } from 'src/auth/services/auth.service';
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const cheerio = require('cheerio');
+
 @Injectable()
 export class SendResumeService {
   constructor(
@@ -88,5 +91,53 @@ export class SendResumeService {
         );
       })
     );
+  }
+
+  getCleanResumeText(body: ResumeBody): Observable<string> {
+    const { resume } = body;
+
+    const $ = cheerio.load(resume, {
+      scriptingEnabled: false,
+      sourceCodeLocationInfo: false,
+      decodeEntities: false
+    });
+
+    const text = $.text()
+      .replace(/\s+/g, ' ')
+      .replace(/<script.*?<\/script>/g, '')
+      .replace(/<style.*?<\/style>/g, '')
+      .replace(/<.*?>/g, '')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&amp;/g, '&')
+      .replace(/&quot;/g, '"')
+      .replace(/&apos;/g, "'")
+      .replace(/&cent;/g, '¢')
+      .replace(/&pound;/g, '£')
+      .replace(/&yen;/g, '¥')
+      .replace(/&euro;/g, '€')
+      .replace(/&copy;/g, '©')
+      .replace(/&reg;/g, '®')
+      .replace(/&trade;/g, '™')
+      .replace(/&times;/g, '×')
+      .replace(/&divide;/g, '÷')
+      .replace(/&mdash;/g, '—')
+      .replace(/&ndash;/g, '–')
+      .replace(/&hellip;/g, '…')
+      .replace(/&laquo;/g, '«')
+      .replace(/&raquo;/g, '»')
+      .replace(/&ldquo;/g, '“')
+      .replace(/&rdquo;/g, '”')
+      .replace(/&lsquo;/g, '‘')
+      .replace(/&rsquo;/g, '’')
+      .replace(/&sbquo;/g, '‚')
+      .replace(/&bdquo;/g, '„')
+      .replace(/\[.*?\}\s/g, '')
+      .replace(/@.*?;/g, '')
+      .replace(/\{.*?\}/g, '')
+      .replace(/!function.*?\} } }/g, '');
+
+    return of(text);
   }
 }

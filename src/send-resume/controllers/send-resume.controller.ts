@@ -44,6 +44,12 @@ export class SendResumeController {
     return this.sendResumeService.sendResume(resume);
   }
 
+  @Post('get-clean-resume-text')
+  @HttpCode(200)
+  getCleanResumeText(@Body() resume: ResumeBody): Observable<string> {
+    return this.sendResumeService.getCleanResumeText(resume);
+  }
+
   @Post('upload')
   @HttpCode(200)
   @UseInterceptors(FileInterceptor('resume'))

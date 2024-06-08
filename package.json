@@ -32,6 +32,7 @@
     "@nestjs/throttler": "^5.1.2",
     "any-text": "^1.2.0",
     "axios": "^1.6.7",
+    "cheerio": "^1.0.0-rc.12",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
     "file-type": "^16.5.4",
