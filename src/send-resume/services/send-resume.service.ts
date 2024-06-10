@@ -6,7 +6,8 @@ import {
   firstValueFrom,
   from,
   of,
-  switchMap
+  switchMap,
+  map
 } from 'rxjs';
 
 import { HttpService } from '@nestjs/axios';
@@ -35,9 +36,9 @@ export class SendResumeService {
     private readonly authService: AuthService
   ) {}
 
-  sendResume(resume: ResumeBody): Observable<any> {
-    if (!resume.resume)
-      throw new BadRequestException('Please provide a resume.');
+  sendResume(body: ResumeBody): Observable<any> {
+    const { resume } = body;
+    if (!resume) throw new BadRequestException('Please provide a resume.');
 
     return from(
       firstValueFrom(
@@ -45,7 +46,7 @@ export class SendResumeService {
           .post(
             process.env.AGI_URL,
             {
-              profile_text: resume.resume
+              profile_text: resume
             },
             {
               headers: {
@@ -54,7 +55,7 @@ export class SendResumeService {
             }
           )
           .pipe(
-            switchMap(async response => JSON.parse(response.data.resume)),
+            map(async response => response.data.resume),
             catchError((error: AxiosError) => {
               console.log(error);
               throw new BadRequestException('An error happened!');
