@@ -137,7 +137,11 @@ export class SendResumeService {
       .replace(/\[.*?\}\s/g, '')
       .replace(/@.*?;/g, '')
       .replace(/\{.*?\}/g, '')
-      .replace(/!function.*?\} } }/g, '');
+      .replace(/!function.*?\} } }/g, '')
+      .replace(/}/g, '')
+      .replace(/urn:li:page:d_flagship3_profile_view_base/g, '')
+      .replace(/ ,/g, ',')
+      .replace(/,/g, ', ');
 
     return of(text);
   }
