@@ -3,6 +3,7 @@ import {
   GetObjectCommand,
   PutObjectCommand
 } from '@aws-sdk/client-s3';
+import { Logger } from '@nestjs/common';
 
 import { Observable, from, map, switchMap } from 'rxjs';
 
@@ -65,7 +66,7 @@ export const saveResumeToR2Storage = (
         return fileName;
       },
       (error: string) => {
-        console.log('Error uploading file to R2 storage: ', error);
+        Logger.log('Error uploading file to R2 storage: ', error);
         throw new Error(error);
       }
     )

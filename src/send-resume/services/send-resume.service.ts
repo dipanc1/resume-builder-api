@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 
 import {
   Observable,
@@ -57,7 +57,7 @@ export class SendResumeService {
           .pipe(
             map(async response => response.data.resume),
             catchError((error: AxiosError) => {
-              console.log(error);
+              Logger.log(error);
               throw new BadRequestException('An error happened!');
             })
           )
