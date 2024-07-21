@@ -2,20 +2,20 @@
 
 ## Supported Versions
 
-Use this section to tell people about which versions of your project are
-currently being supported with security updates.
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 5.1.x   | :white_check_mark: |
-| 5.0.x   | :x:                |
-| 4.0.x   | :white_check_mark: |
-| < 4.0   | :x:                |
+| 20.10.x | :node:             |
+| 10.2.3  | :npm:              |
 
 ## Reporting a Vulnerability
 
-Use this section to tell people how to report a vulnerability.
+Please report (suspected) security vulnerabilities to [Dipan Chhabra](mailto:dipanchhabra@gmail.com)
 
-Tell them where to go, how often they can expect to get an update on a
-reported vulnerability, what to expect if the vulnerability is accepted or
-declined, etc.
+You will receive a response from us within 48 hours. If the issue is confirmed, we will release a patch as soon as possible depending on complexity but historically within a few days.
+
+If you are not sure whether you are facing a security issue, please do not disclose the information publicly and report it to us first.
+
+## Vulnerability Management Policy
+
+We follow [Semantic Versioning](https://semver.org/) and strive to fix all vulnerabilities as soon as possible. Patch releases are scheduled on a regular basis.
