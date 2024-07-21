@@ -16,13 +16,16 @@ import { AxiosError } from 'axios';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 
-import { MODELS } from 'src/constants';
+import { endPoints, MODELS, ports } from 'src/constants';
 
 import { ResumeBody } from '../models/resume-body.class';
+import { ResumeSectionBody } from '../models/resume-section-body.class';
+
 import { SaveResume } from 'src/save-resume/models/save-resume.interface';
 import { User } from 'src/auth/models/user.interface';
 
 import { AuthService } from 'src/auth/services/auth.service';
+import { Section } from '../models/section.class';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const cheerio = require('cheerio');
@@ -36,26 +39,67 @@ export class SendResumeService {
     private readonly authService: AuthService
   ) {}
 
-  sendResume(body: ResumeBody): Observable<any> {
-    const { resume } = body;
+  sendResume(resumeBody: ResumeBody): Observable<any> {
+    const { resume } = resumeBody;
     if (!resume) throw new BadRequestException('Please provide a resume.');
+
+    const url = `${process.env.AGI_URL}:${ports.AGI}/${endPoints.GENERATE_RESUME}`;
+
+    const headers = {
+      'X-API-KEY': process.env.API_KEY
+    };
+
+    const body = {
+      profile_text: resume
+    };
 
     return from(
       firstValueFrom(
         this.httpService
-          .post(
-            process.env.AGI_URL,
-            {
-              profile_text: resume
-            },
-            {
-              headers: {
-                'X-API-KEY': process.env.API_KEY
-              }
-            }
-          )
+          .post(url, body, {
+            headers
+          })
           .pipe(
             map(async response => response.data.resume),
+            catchError((error: AxiosError) => {
+              Logger.log(error);
+              throw new BadRequestException('An error happened!');
+            })
+          )
+      )
+    );
+  }
+
+  sendResumeSection(
+    section: Section,
+    resumeSection: ResumeSectionBody
+  ): Observable<any> {
+    const { resume, prompt } = resumeSection;
+    if (!resume || !prompt || !section)
+      throw new BadRequestException(
+        'Please provide resume, prompt and section.'
+      );
+
+    const url = `${process.env.AGI_URL}:${ports.AGI_SECTION}/${endPoints.GENERATE_RESUME_SECTION}`;
+
+    const body = {
+      profile_text: resume,
+      section,
+      prompt
+    };
+
+    const headers = {
+      'X-API-KEY': process.env.API_KEY
+    };
+
+    return from(
+      firstValueFrom(
+        this.httpService
+          .post(url, body, {
+            headers
+          })
+          .pipe(
+            map(async response => response.data[`${section}`][`${section}`]),
             catchError((error: AxiosError) => {
               Logger.log(error);
               throw new BadRequestException('An error happened!');

@@ -31,6 +31,9 @@ import { ResumeBody } from '../models/resume-body.class';
 
 import { SendResumeService } from '../services/send-resume.service';
 
+import { ResumeSectionBody } from '../models/resume-section-body.class';
+import { Section } from '../models/section.class';
+
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const reader = require('any-text');
 
@@ -42,6 +45,15 @@ export class SendResumeController {
   @UseGuards(ThrottlerGuard)
   sendResume(@Body() resume: ResumeBody): Observable<any> {
     return this.sendResumeService.sendResume(resume);
+  }
+
+  @Post(':section')
+  @UseGuards(ThrottlerGuard)
+  sendResumeSection(
+    @Body() resumeSectionBody: ResumeSectionBody,
+    @Param('section') section: Section
+  ): Observable<any> {
+    return this.sendResumeService.sendResumeSection(section, resumeSectionBody);
   }
 
   @Post('get-clean-resume-text')
