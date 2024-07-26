@@ -47,7 +47,7 @@ export class SendResumeController {
     return this.sendResumeService.sendResume(resume);
   }
 
-  @Post(':section')
+  @Post('generate-resume-section/:section')
   @UseGuards(ThrottlerGuard)
   sendResumeSection(
     @Body() resumeSectionBody: ResumeSectionBody,
