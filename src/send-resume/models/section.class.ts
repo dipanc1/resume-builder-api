@@ -1,5 +1,6 @@
 export type SectionType =
   | 'education'
+  | 'basics'
   | 'work'
   | 'skills'
   | 'projects'
