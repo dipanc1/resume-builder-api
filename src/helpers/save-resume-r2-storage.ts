@@ -3,7 +3,7 @@ import {
   GetObjectCommand,
   PutObjectCommand
 } from '@aws-sdk/client-s3';
-import { Logger } from '@nestjs/common';
+import { BadRequestException, Logger } from '@nestjs/common';
 
 import { Observable, from, map, switchMap } from 'rxjs';
 
@@ -47,7 +47,9 @@ export const saveResumeToR2Storage = (
   const allowedMimeTypes: validMimeType[] = validMimeTypes;
 
   if (!allowedMimeTypes.includes(resume.mimetype as validMimeType)) {
-    throw new Error('Invalid file type!');
+    throw new BadRequestException(
+      'File type not allowed. Please upload a PDF, DOC, DOCX, or TXT file.'
+    );
   }
 
   const fileName = uuidv4() + '_' + resume.originalname;
@@ -67,7 +69,7 @@ export const saveResumeToR2Storage = (
       },
       (error: string) => {
         Logger.log('Error uploading file to R2 storage: ', error);
-        throw new Error(error);
+        throw new BadRequestException('An error happened!');
       }
     )
   );
