@@ -76,10 +76,11 @@ export class AuthController {
               res.redirect(url + token);
             });
           });
+        } else {
+          this.authService.oAuthLogin(req.user).subscribe(token => {
+            res.redirect(url + token);
+          });
         }
-        this.authService.oAuthLogin(req.user).subscribe(token => {
-          res.redirect(url + token);
-        });
       }
     );
   }
