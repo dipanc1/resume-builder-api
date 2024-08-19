@@ -1,8 +1,14 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
+
+import { catchError, Observable, of } from 'rxjs';
 
 @Injectable()
 export class AppService {
-  getHello(): string {
-    return 'Hello World!';
+  getHealthCheck(): Observable<string> {
+    return of('OK').pipe(
+      catchError((error: Error) => {
+        throw new BadRequestException(error);
+      })
+    );
   }
 }
