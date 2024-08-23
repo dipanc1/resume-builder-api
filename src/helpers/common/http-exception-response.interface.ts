@@ -1,5 +1,5 @@
 export interface HttpExceptionResponse {
-  statusCode: number;
+  status: number;
   error: string;
 }
 

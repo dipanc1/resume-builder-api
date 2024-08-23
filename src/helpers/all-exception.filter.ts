@@ -51,7 +51,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     errorMessage: string,
     request: Request
   ): CustomHttpExceptionResponse => ({
-    statusCode: status,
+    status,
     error: errorMessage,
     path: request.url,
     method: request.method,
@@ -63,11 +63,11 @@ export class AllExceptionsFilter implements ExceptionFilter {
     request: Request,
     exception: any
   ): string => {
-    const { statusCode, error } = errorResponse;
+    const { status, error } = errorResponse;
     const { method, url } = request;
     const errorLog =
       'Response Code: ' +
-      statusCode +
+      status +
       ' - Method: ' +
       method +
       ' - URL: ' +
