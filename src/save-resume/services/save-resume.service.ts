@@ -169,7 +169,7 @@ export class SaveResumeService {
                 }
 
                 return new ResponseDto(
-                  HttpStatus.OK,
+                  HttpStatus.NO_CONTENT,
                   'Resume deleted successfully',
                   null
                 );
