@@ -1,4 +1,11 @@
-import { Body, Controller, HttpCode, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  HttpCode,
+  HttpStatus,
+  Post,
+  UseGuards
+} from '@nestjs/common';
 import { ThrottlerGuard } from '@nestjs/throttler';
 
 import { Observable } from 'rxjs';
@@ -24,7 +31,7 @@ export class SendJobDescriptionController {
   }
 
   @Post('get-clean-job-description-text')
-  @HttpCode(200)
+  @HttpCode(HttpStatus.OK)
   getCleanJobDescriptionText(
     @Body() jobDescription: CleanJobDescriptionBody
   ): Observable<string> {

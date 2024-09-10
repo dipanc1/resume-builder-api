@@ -5,6 +5,8 @@ import {
   Delete,
   Get,
   Headers,
+  HttpCode,
+  HttpStatus,
   Param,
   Post,
   Put,
@@ -60,6 +62,7 @@ export class SaveResumeController {
 
   @Delete(':resumeId')
   @UseGuards(JwtGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
   deleteResume(
     @Param('resumeId') resumeId: string,
     @Headers('authorization') token: string

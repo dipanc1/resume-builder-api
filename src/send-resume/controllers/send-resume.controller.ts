@@ -5,6 +5,7 @@ import {
   Get,
   Headers,
   HttpCode,
+  HttpStatus,
   Param,
   Post,
   UploadedFile,
@@ -57,13 +58,13 @@ export class SendResumeController {
   }
 
   @Post('get-clean-resume-text')
-  @HttpCode(200)
+  @HttpCode(HttpStatus.OK)
   getCleanResumeText(@Body() resume: ResumeBody): Observable<string> {
     return this.sendResumeService.getCleanResumeText(resume);
   }
 
   @Post('upload')
-  @HttpCode(200)
+  @HttpCode(HttpStatus.OK)
   @UseInterceptors(FileInterceptor('resume'))
   uploadResume(
     @UploadedFile() resume: Express.Multer.File
