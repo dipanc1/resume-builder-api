@@ -26,8 +26,6 @@ import { TemplateBody } from '../models/template-body.class';
 import { Template } from '../models/template.interface';
 import { SaveResume } from '../models/save-resume.interface';
 
-import { ResponseDto } from 'src/helpers/common/response.dto';
-
 @Controller('save-resume')
 export class SaveResumeController {
   constructor(private saveResumeService: SaveResumeService) {}
@@ -66,7 +64,7 @@ export class SaveResumeController {
   deleteResume(
     @Param('resumeId') resumeId: string,
     @Headers('authorization') token: string
-  ): Observable<ResponseDto | BadRequestException> {
+  ): Observable<string | BadRequestException> {
     return this.saveResumeService.deleteResume(resumeId, token);
   }
 

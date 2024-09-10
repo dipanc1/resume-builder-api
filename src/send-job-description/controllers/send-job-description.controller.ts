@@ -23,6 +23,7 @@ export class SendJobDescriptionController {
   ) {}
 
   @Post()
+  @HttpCode(HttpStatus.OK)
   @UseGuards(ThrottlerGuard)
   sendJobDescription(
     @Body() jobDescription: JobDescriptionBody

@@ -1,4 +1,4 @@
-import { BadRequestException, HttpStatus, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { Observable, from, map, switchMap } from 'rxjs';
 
 import { Model, isValidObjectId } from 'mongoose';
@@ -7,7 +7,6 @@ import { InjectModel } from '@nestjs/mongoose';
 import { SaveResume } from '../models/save-resume.interface';
 import { Template } from '../models/template.interface';
 
-import { ResponseDto } from 'src/helpers/common/response.dto';
 import { User } from 'src/auth/models/user.interface';
 
 import { SaveResumeBody } from '../models/save-resume-body.class';
@@ -144,7 +143,7 @@ export class SaveResumeService {
   deleteResume(
     resumeId: string,
     token: string
-  ): Observable<ResponseDto | BadRequestException> {
+  ): Observable<string | BadRequestException> {
     if (!isValidObjectId(resumeId)) {
       throw new BadRequestException('Invalid resume id');
     }
@@ -168,11 +167,7 @@ export class SaveResumeService {
                   throw new BadRequestException('Failed to delete resume');
                 }
 
-                return new ResponseDto(
-                  HttpStatus.NO_CONTENT,
-                  'Resume deleted successfully',
-                  null
-                );
+                return 'Resume deleted successfully';
               })
             );
           })
