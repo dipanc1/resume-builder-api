@@ -19,11 +19,18 @@ async function bootstrap() {
     origin: '*'
   });
   await app.listen(process.env.PORT || 3000);
-  fs.unlink('error.log', err => {
+
+  // check if error.log file exists, delete it and create a new one
+  fs.access('error.log', fs.constants.F_OK, (err: Error) => {
     if (err) {
-      Logger.error(err);
+      fs.writeFile('error.log', '', (err: Error) => {
+        if (err) {
+          Logger.error(err);
+        }
+      });
     }
   });
+
   Logger.log(`Application is running on: ${await app.getUrl()}`);
 }
 bootstrap();
