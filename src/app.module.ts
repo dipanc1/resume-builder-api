@@ -27,8 +27,7 @@ import { SaveResumeModule } from './save-resume/save-resume.module';
     ]),
     MongooseModule.forRootAsync({
       useFactory: () => ({
-        uri: process.env.MONGO_URI,
-        useNewUrlParser: true
+        uri: process.env.MONGO_URI
       })
     }),
 
