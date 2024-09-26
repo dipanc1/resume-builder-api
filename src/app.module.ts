@@ -13,6 +13,7 @@ import { SendResumeModule } from './send-resume/send-resume.module';
 import { SendJobDescriptionModule } from './send-job-description/send-job-description.module';
 import { AuthModule } from './auth/auth.module';
 import { SaveResumeModule } from './save-resume/save-resume.module';
+import { BlogsModule } from './blogs/blogs.module';
 
 @Module({
   imports: [
@@ -34,7 +35,8 @@ import { SaveResumeModule } from './save-resume/save-resume.module';
     SendResumeModule,
     SendJobDescriptionModule,
     AuthModule,
-    SaveResumeModule
+    SaveResumeModule,
+    BlogsModule
   ],
   controllers: [AppController],
   providers: [
