@@ -9,7 +9,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 
 import { MODELS } from 'src/constants';
 
-import { SaveResumeSchema } from 'src/save-resume/schema/save-resume.schema';
+import { SaveResumeSchema } from 'src/save-resume/schemas/save-resume.schema';
 import { UserSchema } from 'src/auth/schemas/user.schema';
 
 import { AuthService } from 'src/auth/services/auth.service';

@@ -6,8 +6,8 @@ import { MongooseModule } from '@nestjs/mongoose';
 
 import { MODELS } from 'src/constants';
 
-import { SaveResumeSchema } from './schema/save-resume.schema';
-import { TemplateSchema } from './schema/template.schema';
+import { SaveResumeSchema } from './schemas/save-resume.schema';
+import { TemplateSchema } from './schemas/template.schema';
 import { UserSchema } from 'src/auth/schemas/user.schema';
 
 import { SaveResumeService } from './services/save-resume.service';
