@@ -18,7 +18,10 @@ export const endPoints = {
   GENERATE_RESUME: 'generate_resume'
 };
 
-export const blogAdminEmails = ['dipanchhabra@gmail.com'];
+export const blogAdminEmails = [
+  process.env.BLOG_ADMIN_EMAIL1,
+  process.env.BLOG_ADMIN_EMAIL2
+];
 
 export const ports = {
   AGI: 5000,
