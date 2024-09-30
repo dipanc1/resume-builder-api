@@ -24,6 +24,9 @@ export class BlogsService {
       this.blogModel.find().populate('author', 'firstName lastName')
     ).pipe(
       map(blogs => {
+        if (!blogs) {
+          throw new BadRequestException('No blogs found');
+        }
         return blogs as Blog[];
       })
     );
@@ -88,6 +91,10 @@ export class BlogsService {
               'You are not authorized to create a blog'
             );
           }
+        } else {
+          throw new BadRequestException(
+            'You are not authorized to create a blog'
+          );
         }
       })
     );
@@ -129,6 +136,10 @@ export class BlogsService {
               throw new BadRequestException('Blog not found');
             }
           }
+        } else {
+          throw new BadRequestException(
+            'You are not authorized to update a blog'
+          );
         }
       })
     );
@@ -154,6 +165,10 @@ export class BlogsService {
               'You are not authorized to delete a blog'
             );
           }
+        } else {
+          throw new BadRequestException(
+            'You are not authorized to delete a blog'
+          );
         }
       })
     );
