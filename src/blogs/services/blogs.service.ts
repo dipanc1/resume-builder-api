@@ -19,15 +19,33 @@ export class BlogsService {
     private authService: AuthService
   ) {}
 
-  getBlogs(): Observable<Blog[]> {
+  getBlogs(
+    skip: number,
+    limit: number
+  ): Observable<{
+    blogs: Blog[];
+    totalCount: number;
+    totalPages: number;
+    currentPage: number;
+  }> {
     return from(
-      this.blogModel.find().populate('author', 'firstName lastName')
+      this.blogModel
+        .find()
+        .populate('author', 'firstName lastName')
+        .skip(skip)
+        .limit(limit)
     ).pipe(
-      map(blogs => {
-        if (!blogs) {
-          throw new BadRequestException('No blogs found');
-        }
-        return blogs as Blog[];
+      switchMap(blogs => {
+        return from(this.blogModel.countDocuments()).pipe(
+          map(totalCount => {
+            return {
+              blogs: blogs as Blog[],
+              totalCount,
+              totalPages: Math.ceil(totalCount / limit),
+              currentPage: skip + 1
+            };
+          })
+        );
       })
     );
   }

@@ -10,6 +10,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   UseGuards
 } from '@nestjs/common';
 import { BlogsService } from '../services/blogs.service';
@@ -23,8 +24,18 @@ export class BlogsController {
   constructor(private blogsService: BlogsService) {}
 
   @Get()
-  getBlogs(): Observable<Blog[]> {
-    return this.blogsService.getBlogs();
+  getBlogs(
+    @Query('pageNumber') pageNumber: string,
+    @Query('pageSize') pageSize: string
+  ): Observable<{
+    blogs: Blog[];
+    totalCount: number;
+    totalPages: number;
+    currentPage: number;
+  }> {
+    const skip = parseInt(pageNumber) > 0 ? parseInt(pageNumber) - 1 : 0;
+    const limit = parseInt(pageSize) > 0 ? parseInt(pageSize) : 10;
+    return this.blogsService.getBlogs(skip, limit);
   }
 
   @Get(':slug')
