@@ -6,10 +6,11 @@ import { Model } from 'mongoose';
 import { blogAdminEmails, convertToSlug, MODELS } from 'src/constants';
 
 import { Blog } from '../models/blog.interface';
-import { from, map, Observable, switchMap } from 'rxjs';
+import { from, map, mergeMap, Observable, switchMap } from 'rxjs';
 import { AuthService } from 'src/auth/services/auth.service';
 import { BlogBody } from '../models/blog-body.class';
 import { User } from 'src/auth/models/user.interface';
+import { saveImageToR2Storage } from 'src/helpers/r2-storage';
 
 @Injectable()
 export class BlogsService {
@@ -70,7 +71,7 @@ export class BlogsService {
   ): Observable<Blog | BadRequestException> {
     const { title, content, image, tags } = blog;
     return from(this.authService.decodeToken(token)).pipe(
-      switchMap(async email => {
+      mergeMap(async email => {
         if (blogAdminEmails.includes(email)) {
           const user = await this.userModel.findOne({ email });
 
@@ -115,6 +116,34 @@ export class BlogsService {
           );
         }
       })
+    );
+  }
+
+  uploadImage(
+    image: Express.Multer.File,
+    token: string
+  ): Observable<string | BadRequestException> {
+    return from(this.authService.decodeToken(token)).pipe(
+      mergeMap(async email => {
+        if (blogAdminEmails.includes(email)) {
+          const user = await this.userModel.findOne({ email });
+
+          if (!user) {
+            throw new BadRequestException('User not found');
+          }
+
+          return from(saveImageToR2Storage(image)).pipe(
+            map(fileName => {
+              return fileName;
+            })
+          );
+        } else {
+          throw new BadRequestException(
+            'You are not authorized to upload an image'
+          );
+        }
+      }),
+      mergeMap(innerObservable => innerObservable) // Flatten the nested Observable
     );
   }
 

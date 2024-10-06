@@ -11,13 +11,16 @@ import {
   Post,
   Put,
   Query,
-  UseGuards
+  UploadedFile,
+  UseGuards,
+  UseInterceptors
 } from '@nestjs/common';
 import { BlogsService } from '../services/blogs.service';
 import { JwtGuard } from 'src/auth/guards/jwt-auth.guard';
 import { BlogBody } from '../models/blog-body.class';
 import { Observable } from 'rxjs';
 import { Blog } from '../models/blog.interface';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('blogs')
 export class BlogsController {
@@ -50,6 +53,16 @@ export class BlogsController {
     @Body() blog: BlogBody
   ): Observable<Blog | BadRequestException> {
     return this.blogsService.createBlog(blog, token);
+  }
+
+  @Post('upload-image')
+  @UseGuards(JwtGuard)
+  @UseInterceptors(FileInterceptor('image'))
+  uploadImage(
+    @UploadedFile() image: Express.Multer.File,
+    @Headers('authorization') token: string
+  ): Observable<string | BadRequestException> {
+    return this.blogsService.uploadImage(image, token);
   }
 
   @Put(':slug')

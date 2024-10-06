@@ -19,12 +19,16 @@ type validMimeType =
   | 'text/plain'
   | 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
 
+type validImageMimeType = 'image/jpeg' | 'image/png';
+
 const validMimeTypes: validMimeType[] = [
   'application/pdf',
   'application/msword',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
   'text/plain'
 ];
+
+const validImageMimeTypes: validImageMimeType[] = ['image/jpeg', 'image/png'];
 
 const ACCOUNT_ID = process.env.CLOUDFLARE_ACCOUNT_ID;
 const ACCESS_KEY_ID = process.env.CLOUDFLARE_ACCESS_KEY_ID;
@@ -65,6 +69,39 @@ export const saveResumeToR2Storage = (
     map(
       () => {
         fs.writeFileSync(`./uploads/${fileName}`, resume.buffer);
+        return fileName;
+      },
+      (error: string) => {
+        Logger.log('Error uploading file to R2 storage: ', error);
+        throw new BadRequestException('An error happened!');
+      }
+    )
+  );
+};
+
+export const saveImageToR2Storage = (
+  image: Express.Multer.File
+): Observable<string | BadRequestException> => {
+  const allowedMimeTypes: validImageMimeType[] = validImageMimeTypes;
+
+  if (!allowedMimeTypes.includes(image.mimetype as validImageMimeType)) {
+    throw new BadRequestException(
+      'File type not allowed. Please upload a JPEG or PNG file.'
+    );
+  }
+
+  const fileName = uuidv4() + '_' + image.originalname;
+
+  const uploadParams = {
+    Bucket: process.env.CLOUDFLARE_BUCKET_NAME,
+    Key: fileName,
+    Body: image.buffer,
+    ContentType: image.mimetype
+  };
+
+  return from(S3.send(new PutObjectCommand(uploadParams))).pipe(
+    map(
+      () => {
         return fileName;
       },
       (error: string) => {

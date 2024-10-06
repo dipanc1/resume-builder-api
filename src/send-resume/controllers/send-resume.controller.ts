@@ -25,7 +25,7 @@ import {
   isFileSizeLessThanOneMB,
   removeFile
 } from 'src/helpers/resume-storage';
-import { saveResumeToR2Storage } from 'src/helpers/save-resume-r2-storage';
+import { saveResumeToR2Storage } from 'src/helpers/r2-storage';
 
 import { ResumeTextBody } from '../models/resume-text-body.class';
 import { ResumeBody } from '../models/resume-body.class';
