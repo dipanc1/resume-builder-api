@@ -160,6 +160,8 @@ export class BlogsService {
                 );
               }
 
+              console.log('Image buffer: ', image.buffer, image.originalname);
+
               const formData = new FormData();
               formData.append('file', image.buffer, image.originalname);
               formData.append(
