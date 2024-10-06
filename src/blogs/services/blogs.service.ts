@@ -155,7 +155,8 @@ export class BlogsService {
                 )
               ) {
                 throw new BadRequestException(
-                  'File type not allowed. Please upload a JPEG or PNG image.'
+                  'File type not allowed. Please upload a JPEG or PNG image.' +
+                    image.mimetype
                 );
               }
 
