@@ -1,23 +1,40 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 
+import { catchError, from, map, mergeMap, Observable, switchMap } from 'rxjs';
+
 import { Model } from 'mongoose';
 
 import { blogAdminEmails, convertToSlug, MODELS } from 'src/constants';
 
 import { Blog } from '../models/blog.interface';
-import { from, map, mergeMap, Observable, switchMap } from 'rxjs';
-import { AuthService } from 'src/auth/services/auth.service';
-import { BlogBody } from '../models/blog-body.class';
 import { User } from 'src/auth/models/user.interface';
-import { saveImageToR2Storage } from 'src/helpers/r2-storage';
+
+import { BlogBody } from '../models/blog-body.class';
+
+import { AuthService } from 'src/auth/services/auth.service';
+
+import * as FormData from 'form-data';
+
+import { HttpService } from '@nestjs/axios';
+import { AxiosResponse } from 'axios';
+
+type validImageMimeType = 'image/jpeg' | 'image/png';
+
+const validImageMimeTypes: validImageMimeType[] = ['image/jpeg', 'image/png'];
+
+const IMAGE_UPLOAD_ACCOUNT_ID = process.env.CLOUDFLARE_IMAGE_UPLOAD_ACCOUNT_ID;
+
+const IMAGE_UPLOAD_URL = `https://api.cloudflare.com/client/v4/accounts/${IMAGE_UPLOAD_ACCOUNT_ID}/images/v1`;
+const IMAGE_TOKEN = process.env.CLOUDFLARE_IMAGE_TOKEN;
 
 @Injectable()
 export class BlogsService {
   constructor(
     @InjectModel(MODELS.BLOG) private blogModel: Model<Blog>,
     @InjectModel(MODELS.USER) private userModel: Model<User>,
-    private authService: AuthService
+    private authService: AuthService,
+    private readonly httpService: HttpService
   ) {}
 
   getBlogs(
@@ -124,17 +141,49 @@ export class BlogsService {
     token: string
   ): Observable<string | BadRequestException> {
     return from(this.authService.decodeToken(token)).pipe(
-      mergeMap(async email => {
+      mergeMap(email => {
         if (blogAdminEmails.includes(email)) {
-          const user = await this.userModel.findOne({ email });
+          return from(this.userModel.findOne({ email })).pipe(
+            mergeMap(user => {
+              if (!user) {
+                throw new BadRequestException('User not found');
+              }
 
-          if (!user) {
-            throw new BadRequestException('User not found');
-          }
+              if (
+                !validImageMimeTypes.includes(
+                  image.mimetype as validImageMimeType
+                )
+              ) {
+                throw new BadRequestException(
+                  'File type not allowed. Please upload a JPEG or PNG image.'
+                );
+              }
 
-          return from(saveImageToR2Storage(image)).pipe(
-            map(fileName => {
-              return fileName;
+              const formData = new FormData();
+              formData.append('file', image.buffer, image.originalname);
+              formData.append(
+                'metadata',
+                JSON.stringify({ thumbnail: 'yes it is' })
+              );
+              formData.append('requireSignedURLs', 'false');
+
+              return this.httpService
+                .post(IMAGE_UPLOAD_URL, formData, {
+                  headers: {
+                    Authorization: `Bearer ${IMAGE_TOKEN}`
+                  }
+                })
+                .pipe(
+                  map(
+                    (response: AxiosResponse) =>
+                      response.data.result.variants[1]
+                  ),
+                  catchError(err => {
+                    throw new BadRequestException(
+                      'Image upload failed: ' + err.message
+                    );
+                  })
+                );
             })
           );
         } else {
@@ -143,7 +192,9 @@ export class BlogsService {
           );
         }
       }),
-      mergeMap(innerObservable => innerObservable) // Flatten the nested Observable
+      catchError(err => {
+        throw new BadRequestException(err.message);
+      })
     );
   }
 
