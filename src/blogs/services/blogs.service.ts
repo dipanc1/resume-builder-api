@@ -86,7 +86,7 @@ export class BlogsService {
     blog: BlogBody,
     token: string
   ): Observable<Blog | BadRequestException> {
-    const { title, content, image, tags } = blog;
+    const { title, content, image, description } = blog;
     return from(this.authService.decodeToken(token)).pipe(
       mergeMap(async email => {
         if (blogAdminEmails.includes(email)) {
@@ -109,7 +109,7 @@ export class BlogsService {
               title,
               content,
               image,
-              tags,
+              description,
               slug: convertToSlug(title),
               author: user._id
             });
@@ -160,8 +160,6 @@ export class BlogsService {
                 );
               }
 
-              console.log('Image buffer: ', image.buffer, image.originalname);
-
               const formData = new FormData();
               formData.append('file', image.buffer, image.originalname);
               formData.append(
@@ -206,7 +204,7 @@ export class BlogsService {
     blog: BlogBody,
     token: string
   ): Observable<Blog | BadRequestException> {
-    const { title, content, image, tags } = blog;
+    const { title, content, image, description } = blog;
     return from(this.authService.decodeToken(token)).pipe(
       switchMap(async email => {
         if (blogAdminEmails.includes(email)) {
@@ -222,7 +220,7 @@ export class BlogsService {
                       title,
                       content,
                       image,
-                      tags,
+                      description,
                       slug: convertToSlug(title),
                       updatedAt: new Date()
                     },

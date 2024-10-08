@@ -10,6 +10,6 @@ export class BlogBody {
   @IsString()
   readonly image: string;
 
-  @IsString({ each: true })
-  readonly tags: string[];
+  @IsString()
+  readonly description: string;
 }
