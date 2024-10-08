@@ -52,6 +52,7 @@ export class BlogsService {
         .populate('author', 'firstName lastName')
         .skip(skip)
         .limit(limit)
+        .sort({ createdAt: -1 })
     ).pipe(
       switchMap(blogs => {
         return from(this.blogModel.countDocuments()).pipe(
