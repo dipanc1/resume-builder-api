@@ -65,12 +65,12 @@ export class BlogsController {
     return this.blogsService.uploadImage(image, token);
   }
 
-  @Delete('delete-image')
+  @Delete('delete-image/:imageId')
   @UseGuards(JwtGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   deleteImage(
     @Headers('authorization') token: string,
-    @Query('imageId') imageId: string
+    @Param('imageId') imageId: string
   ): Observable<string | BadRequestException> {
     return this.blogsService.deleteImage(token, imageId);
   }
