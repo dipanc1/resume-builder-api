@@ -200,6 +200,47 @@ export class BlogsService {
     );
   }
 
+  deleteImage(
+    token: string,
+    imageId: string
+  ): Observable<string | BadRequestException> {
+    return from(this.authService.decodeToken(token)).pipe(
+      mergeMap(email => {
+        if (blogAdminEmails.includes(email)) {
+          return from(this.userModel.findOne({ email })).pipe(
+            mergeMap(user => {
+              if (!user) {
+                throw new BadRequestException('User not found');
+              }
+
+              return this.httpService
+                .delete(`${IMAGE_UPLOAD_URL}/${imageId}`, {
+                  headers: {
+                    Authorization: `Bearer ${IMAGE_TOKEN}`
+                  }
+                })
+                .pipe(
+                  map(() => 'Image deleted successfully'),
+                  catchError(err => {
+                    throw new BadRequestException(
+                      'Image delete failed: ' + err.message
+                    );
+                  })
+                );
+            })
+          );
+        } else {
+          throw new BadRequestException(
+            'You are not authorized to delete an image'
+          );
+        }
+      }),
+      catchError(err => {
+        throw new BadRequestException(err.message);
+      })
+    );
+  }
+
   updateBlog(
     slug: string,
     blog: BlogBody,
