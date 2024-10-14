@@ -176,9 +176,10 @@ export class BlogsService {
                   }
                 })
                 .pipe(
-                  map(
-                    (response: AxiosResponse) =>
-                      response.data.result.variants[1]
+                  map((response: AxiosResponse) =>
+                    response.data.result.variants[0].includes('public')
+                      ? response.data.result.variants[0]
+                      : response.data.result.variants[1]
                   ),
                   catchError(err => {
                     throw new BadRequestException(
