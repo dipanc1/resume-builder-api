@@ -87,7 +87,7 @@ export class BlogsService {
     blog: BlogBody,
     token: string
   ): Observable<Blog | BadRequestException> {
-    const { title, content, image, description } = blog;
+    const { title, content, image, description, imageIds } = blog;
     return from(this.authService.decodeToken(token)).pipe(
       mergeMap(async email => {
         if (blogAdminEmails.includes(email)) {
@@ -112,7 +112,8 @@ export class BlogsService {
               image,
               description,
               slug: convertToSlug(title),
-              author: user._id
+              author: user._id,
+              imageIds
             });
             try {
               const blog = (await newBlog.save()).populate(
@@ -247,7 +248,7 @@ export class BlogsService {
     blog: BlogBody,
     token: string
   ): Observable<Blog | BadRequestException> {
-    const { title, content, image, description } = blog;
+    const { title, content, image, description, imageIds } = blog;
     return from(this.authService.decodeToken(token)).pipe(
       switchMap(async email => {
         if (blogAdminEmails.includes(email)) {
@@ -256,6 +257,29 @@ export class BlogsService {
             const blogExists = await this.blogModel.findOne({ slug });
             if (blogExists) {
               try {
+                // Retrieve existing imageIds from the blog
+                const existingImageIds = blogExists?.imageIds;
+
+                if (existingImageIds.length) {
+                  // Find imageIds to delete
+                  const imageIdsToDelete = existingImageIds.filter(
+                    id => !imageIds.includes(id)
+                  );
+
+                  // Delete imageIds that are not in the new imageIds array from Cloudflare
+                  await Promise.all(
+                    imageIdsToDelete.map(imageId =>
+                      this.httpService.delete(
+                        `${IMAGE_UPLOAD_URL}/${imageId}`,
+                        {
+                          headers: {
+                            Authorization: `Bearer ${IMAGE_TOKEN}`
+                          }
+                        }
+                      )
+                    )
+                  );
+                }
                 const updatedBlog = await this.blogModel
                   .findOneAndUpdate(
                     { slug },
@@ -264,6 +288,7 @@ export class BlogsService {
                       content,
                       image,
                       description,
+                      imageIds,
                       slug: convertToSlug(title),
                       updatedAt: new Date()
                     },

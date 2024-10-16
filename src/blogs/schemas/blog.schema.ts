@@ -5,6 +5,7 @@ export const BlogSchema = new mongoose.Schema({
   slug: { type: String, required: true, trim: true, unique: true },
   content: { type: String, required: true, trim: true },
   image: { type: String, required: true, trim: true },
+  imageIds: { type: [String], default: [] },
   views: { type: Number, default: 0 },
   description: { type: String, required: true, trim: true },
   author: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'user' },
