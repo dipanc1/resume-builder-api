@@ -20,7 +20,8 @@ export const endPoints = {
 
 export const blogAdminEmails = [
   process.env.BLOG_ADMIN_EMAIL1,
-  process.env.BLOG_ADMIN_EMAIL2
+  process.env.BLOG_ADMIN_EMAIL2,
+  process.env.BLOG_ADMIN_EMAIL3
 ];
 
 export const ports = {
