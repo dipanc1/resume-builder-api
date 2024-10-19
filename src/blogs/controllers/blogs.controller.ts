@@ -70,8 +70,9 @@ export class BlogsController {
     return this.blogsService.uploadImage(image, token);
   }
 
+  @Roles(Role.ADMIN)
   @Delete('delete-image/:imageId')
-  @UseGuards(JwtGuard)
+  @UseGuards(JwtGuard, RoleGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   deleteImage(
     @Headers('authorization') token: string,
@@ -80,8 +81,9 @@ export class BlogsController {
     return this.blogsService.deleteImage(token, imageId);
   }
 
+  @Roles(Role.ADMIN)
   @Put(':slug')
-  @UseGuards(JwtGuard)
+  @UseGuards(JwtGuard, RoleGuard)
   updateBlog(
     @Param('slug') slug: string,
     @Body() blog: BlogBody,
@@ -90,8 +92,9 @@ export class BlogsController {
     return this.blogsService.updateBlog(slug, blog, token);
   }
 
+  @Roles(Role.ADMIN)
   @Delete(':slug')
-  @UseGuards(JwtGuard)
+  @UseGuards(JwtGuard, RoleGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   deleteBlog(
     @Headers('authorization') token: string,

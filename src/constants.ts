@@ -18,6 +18,7 @@ export const endPoints = {
   GENERATE_RESUME: 'generate_resume'
 };
 
+// TODO: Will delete it later
 export const blogAdminEmails = [
   process.env.BLOG_ADMIN_EMAIL1,
   process.env.BLOG_ADMIN_EMAIL2,

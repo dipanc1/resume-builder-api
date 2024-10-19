@@ -5,7 +5,7 @@ import { catchError, from, map, mergeMap, Observable, switchMap } from 'rxjs';
 
 import { Model } from 'mongoose';
 
-import { blogAdminEmails, convertToSlug, MODELS } from 'src/constants';
+import { convertToSlug, MODELS } from 'src/constants';
 
 import { Blog } from '../models/blog.interface';
 import { User } from 'src/auth/models/user.interface';
@@ -90,44 +90,38 @@ export class BlogsService {
     const { title, content, image, description, imageIds } = blog;
     return from(this.authService.decodeToken(token)).pipe(
       mergeMap(async email => {
-        if (blogAdminEmails.includes(email)) {
-          const user = await this.userModel.findOne({ email });
+        const user = await this.userModel.findOne({ email });
 
-          if (!user) {
-            throw new BadRequestException('User not found');
-          }
+        if (!user) {
+          throw new BadRequestException('User not found');
+        }
 
-          const blogExists = await this.blogModel.findOne({
-            slug: convertToSlug(title)
+        const blogExists = await this.blogModel.findOne({
+          slug: convertToSlug(title)
+        });
+
+        if (blogExists) {
+          throw new BadRequestException('Blog already exists');
+        }
+
+        if (user && !blogExists) {
+          const newBlog = new this.blogModel({
+            title,
+            content,
+            image,
+            description,
+            slug: convertToSlug(title),
+            author: user._id,
+            imageIds
           });
-
-          if (blogExists) {
-            throw new BadRequestException('Blog already exists');
-          }
-
-          if (user && !blogExists) {
-            const newBlog = new this.blogModel({
-              title,
-              content,
-              image,
-              description,
-              slug: convertToSlug(title),
-              author: user._id,
-              imageIds
-            });
-            try {
-              const blog = (await newBlog.save()).populate(
-                'author',
-                'firstName lastName'
-              );
-              return blog;
-            } catch (err) {
-              throw new BadRequestException(err.message);
-            }
-          } else {
-            throw new BadRequestException(
-              'You are not authorized to create a blog'
+          try {
+            const blog = (await newBlog.save()).populate(
+              'author',
+              'firstName lastName'
             );
+            return blog;
+          } catch (err) {
+            throw new BadRequestException(err.message);
           }
         } else {
           throw new BadRequestException(
@@ -144,57 +138,51 @@ export class BlogsService {
   ): Observable<string | BadRequestException> {
     return from(this.authService.decodeToken(token)).pipe(
       mergeMap(email => {
-        if (blogAdminEmails.includes(email)) {
-          return from(this.userModel.findOne({ email })).pipe(
-            mergeMap(user => {
-              if (!user) {
-                throw new BadRequestException('User not found');
-              }
+        return from(this.userModel.findOne({ email })).pipe(
+          mergeMap(user => {
+            if (!user) {
+              throw new BadRequestException('User not found');
+            }
 
-              if (
-                !validImageMimeTypes.includes(
-                  image.mimetype as validImageMimeType
-                )
-              ) {
-                throw new BadRequestException(
-                  'File type not allowed. Please upload a JPEG or PNG image.' +
-                    image.mimetype
-                );
-              }
-
-              const formData = new FormData();
-              formData.append('file', image.buffer, image.originalname);
-              formData.append(
-                'metadata',
-                JSON.stringify({ thumbnail: 'yes it is' })
+            if (
+              !validImageMimeTypes.includes(
+                image.mimetype as validImageMimeType
+              )
+            ) {
+              throw new BadRequestException(
+                'File type not allowed. Please upload a JPEG or PNG image.' +
+                  image.mimetype
               );
-              formData.append('requireSignedURLs', 'false');
+            }
 
-              return this.httpService
-                .post(IMAGE_UPLOAD_URL, formData, {
-                  headers: {
-                    Authorization: `Bearer ${IMAGE_TOKEN}`
-                  }
+            const formData = new FormData();
+            formData.append('file', image.buffer, image.originalname);
+            formData.append(
+              'metadata',
+              JSON.stringify({ thumbnail: 'yes it is' })
+            );
+            formData.append('requireSignedURLs', 'false');
+
+            return this.httpService
+              .post(IMAGE_UPLOAD_URL, formData, {
+                headers: {
+                  Authorization: `Bearer ${IMAGE_TOKEN}`
+                }
+              })
+              .pipe(
+                map((response: AxiosResponse) =>
+                  response.data.result.variants[0].includes('public')
+                    ? response.data.result.variants[0]
+                    : response.data.result.variants[1]
+                ),
+                catchError(err => {
+                  throw new BadRequestException(
+                    'Image upload failed: ' + err.message
+                  );
                 })
-                .pipe(
-                  map((response: AxiosResponse) =>
-                    response.data.result.variants[0].includes('public')
-                      ? response.data.result.variants[0]
-                      : response.data.result.variants[1]
-                  ),
-                  catchError(err => {
-                    throw new BadRequestException(
-                      'Image upload failed: ' + err.message
-                    );
-                  })
-                );
-            })
-          );
-        } else {
-          throw new BadRequestException(
-            'You are not authorized to upload an image'
-          );
-        }
+              );
+          })
+        );
       }),
       catchError(err => {
         throw new BadRequestException(err.message);
@@ -208,34 +196,28 @@ export class BlogsService {
   ): Observable<string | BadRequestException> {
     return from(this.authService.decodeToken(token)).pipe(
       mergeMap(email => {
-        if (blogAdminEmails.includes(email)) {
-          return from(this.userModel.findOne({ email })).pipe(
-            mergeMap(user => {
-              if (!user) {
-                throw new BadRequestException('User not found');
-              }
+        return from(this.userModel.findOne({ email })).pipe(
+          mergeMap(user => {
+            if (!user) {
+              throw new BadRequestException('User not found');
+            }
 
-              return this.httpService
-                .delete(`${IMAGE_UPLOAD_URL}/${imageId}`, {
-                  headers: {
-                    Authorization: `Bearer ${IMAGE_TOKEN}`
-                  }
+            return this.httpService
+              .delete(`${IMAGE_UPLOAD_URL}/${imageId}`, {
+                headers: {
+                  Authorization: `Bearer ${IMAGE_TOKEN}`
+                }
+              })
+              .pipe(
+                map(() => 'Image deleted successfully'),
+                catchError(err => {
+                  throw new BadRequestException(
+                    'Image delete failed: ' + err.message
+                  );
                 })
-                .pipe(
-                  map(() => 'Image deleted successfully'),
-                  catchError(err => {
-                    throw new BadRequestException(
-                      'Image delete failed: ' + err.message
-                    );
-                  })
-                );
-            })
-          );
-        } else {
-          throw new BadRequestException(
-            'You are not authorized to delete an image'
-          );
-        }
+              );
+          })
+        );
       }),
       catchError(err => {
         throw new BadRequestException(err.message);
@@ -251,56 +233,49 @@ export class BlogsService {
     const { title, content, image, description, imageIds } = blog;
     return from(this.authService.decodeToken(token)).pipe(
       switchMap(async email => {
-        if (blogAdminEmails.includes(email)) {
-          const user = await this.userModel.findOne({ email });
-          if (user) {
-            const blogExists = await this.blogModel.findOne({ slug });
-            if (blogExists) {
-              try {
-                // Retrieve existing imageIds from the blog
-                const existingImageIds = blogExists?.imageIds;
+        const user = await this.userModel.findOne({ email });
+        if (user) {
+          const blogExists = await this.blogModel.findOne({ slug });
+          if (blogExists) {
+            try {
+              // Retrieve existing imageIds from the blog
+              const existingImageIds = blogExists?.imageIds;
 
-                if (existingImageIds.length) {
-                  // Find imageIds to delete
-                  const imageIdsToDelete = existingImageIds.filter(
-                    id => !imageIds.includes(id)
-                  );
+              if (existingImageIds.length) {
+                // Find imageIds to delete
+                const imageIdsToDelete = existingImageIds.filter(
+                  id => !imageIds.includes(id)
+                );
 
-                  // Delete imageIds that are not in the new imageIds array from Cloudflare
-                  await Promise.all(
-                    imageIdsToDelete.map(imageId =>
-                      this.httpService.delete(
-                        `${IMAGE_UPLOAD_URL}/${imageId}`,
-                        {
-                          headers: {
-                            Authorization: `Bearer ${IMAGE_TOKEN}`
-                          }
-                        }
-                      )
-                    )
-                  );
-                }
-                const updatedBlog = await this.blogModel
-                  .findOneAndUpdate(
-                    { slug },
-                    {
-                      title,
-                      content,
-                      image,
-                      description,
-                      imageIds,
-                      slug: convertToSlug(title),
-                      updatedAt: new Date()
-                    },
-                    { new: true }
+                // Delete imageIds that are not in the new imageIds array from Cloudflare
+                await Promise.all(
+                  imageIdsToDelete.map(imageId =>
+                    this.httpService.delete(`${IMAGE_UPLOAD_URL}/${imageId}`, {
+                      headers: {
+                        Authorization: `Bearer ${IMAGE_TOKEN}`
+                      }
+                    })
                   )
-                  .populate('author', 'firstName lastName');
-                return updatedBlog;
-              } catch (err) {
-                throw new BadRequestException(err.message);
+                );
               }
-            } else {
-              throw new BadRequestException('Blog not found');
+              const updatedBlog = await this.blogModel
+                .findOneAndUpdate(
+                  { slug },
+                  {
+                    title,
+                    content,
+                    image,
+                    description,
+                    imageIds,
+                    slug: convertToSlug(title),
+                    updatedAt: new Date()
+                  },
+                  { new: true }
+                )
+                .populate('author', 'firstName lastName');
+              return updatedBlog;
+            } catch (err) {
+              throw new BadRequestException(err.message);
             }
           }
         } else {
@@ -318,19 +293,13 @@ export class BlogsService {
   ): Observable<string | BadRequestException> {
     return from(this.authService.decodeToken(token)).pipe(
       switchMap(async email => {
-        if (blogAdminEmails.includes(email)) {
-          const user = await this.userModel.findOne({ email });
-          if (user) {
-            const blog = await this.blogModel.findOneAndDelete({ slug });
-            if (blog) {
-              return 'Blog deleted successfully';
-            } else {
-              throw new BadRequestException('Blog not found');
-            }
+        const user = await this.userModel.findOne({ email });
+        if (user) {
+          const blog = await this.blogModel.findOneAndDelete({ slug });
+          if (blog) {
+            return 'Blog deleted successfully';
           } else {
-            throw new BadRequestException(
-              'You are not authorized to delete a blog'
-            );
+            throw new BadRequestException('Blog not found');
           }
         } else {
           throw new BadRequestException(
