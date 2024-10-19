@@ -50,8 +50,8 @@ export class AuthService {
     return from(this.userModel.create(user));
   }
 
-  oAuthLogin(user: UserBody): Observable<string> {
-    return of(this.jwtService.sign({ email: user.email, role: user.role }));
+  oAuthLogin(user: UserBody, role: string): Observable<string> {
+    return of(this.jwtService.sign({ email: user.email, role }));
   }
 
   updateRole(email: string, role: Role): Observable<User> {
