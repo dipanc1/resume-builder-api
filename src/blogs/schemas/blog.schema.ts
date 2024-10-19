@@ -7,6 +7,7 @@ export const BlogSchema = new mongoose.Schema({
   image: { type: String, required: true, trim: true },
   imageIds: { type: [String], default: [] },
   views: { type: Number, default: 0 },
+  draft: { type: Boolean, default: true },
   description: { type: String, required: true, trim: true },
   author: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'user' },
   createdAt: { type: Date, default: Date.now },

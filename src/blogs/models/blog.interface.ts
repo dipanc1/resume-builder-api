@@ -7,6 +7,7 @@ export interface Blog extends Document {
   readonly image: string;
   readonly imageIds: string[];
   readonly views: number;
+  readonly draft: boolean;
   readonly description: string;
   readonly author: string;
   readonly createdAt: Date;

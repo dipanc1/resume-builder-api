@@ -1,4 +1,4 @@
-import { IsArray, IsString } from 'class-validator';
+import { IsArray, IsBoolean, IsString } from 'class-validator';
 
 export class BlogBody {
   @IsString()
@@ -15,4 +15,7 @@ export class BlogBody {
 
   @IsArray()
   readonly imageIds: string[];
+
+  @IsBoolean()
+  readonly draft: boolean;
 }

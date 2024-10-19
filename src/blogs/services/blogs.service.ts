@@ -48,14 +48,14 @@ export class BlogsService {
   }> {
     return from(
       this.blogModel
-        .find()
+        .find({ draft: false })
         .populate('author', 'firstName lastName')
         .skip(skip)
         .limit(limit)
         .sort({ createdAt: -1 })
     ).pipe(
       switchMap(blogs => {
-        return from(this.blogModel.countDocuments()).pipe(
+        return from(this.blogModel.countDocuments({ draft: false })).pipe(
           map(totalCount => {
             return {
               blogs: blogs as Blog[],
@@ -71,7 +71,9 @@ export class BlogsService {
 
   getBlog(slug: string): Observable<Blog | BadRequestException> {
     return from(
-      this.blogModel.findOne({ slug }).populate('author', 'firstName lastName')
+      this.blogModel
+        .findOne({ slug, draft: false })
+        .populate('author', 'firstName lastName')
     ).pipe(
       map(blog => {
         if (blog) {
@@ -87,7 +89,7 @@ export class BlogsService {
     blog: BlogBody,
     token: string
   ): Observable<Blog | BadRequestException> {
-    const { title, content, image, description, imageIds } = blog;
+    const { title, content, image, description, imageIds, draft } = blog;
     return from(this.authService.decodeToken(token)).pipe(
       mergeMap(async email => {
         const user = await this.userModel.findOne({ email });
@@ -110,6 +112,7 @@ export class BlogsService {
             content,
             image,
             description,
+            draft,
             slug: convertToSlug(title),
             author: user._id,
             imageIds
@@ -230,7 +233,7 @@ export class BlogsService {
     blog: BlogBody,
     token: string
   ): Observable<Blog | BadRequestException> {
-    const { title, content, image, description, imageIds } = blog;
+    const { title, content, image, description, imageIds, draft } = blog;
     return from(this.authService.decodeToken(token)).pipe(
       switchMap(async email => {
         const user = await this.userModel.findOne({ email });
@@ -266,6 +269,7 @@ export class BlogsService {
                     content,
                     image,
                     description,
+                    draft,
                     imageIds,
                     slug: convertToSlug(title),
                     updatedAt: new Date()
