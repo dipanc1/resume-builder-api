@@ -44,9 +44,19 @@ export class BlogsController {
     return this.blogsService.getBlogs(skip, limit);
   }
 
-  @Get(':slug')
+  @Get('get-blog/:slug')
   getBlog(@Param('slug') slug: string): Observable<Blog | BadRequestException> {
     return this.blogsService.getBlog(slug);
+  }
+
+  @Roles(Role.ADMIN)
+  @Get('set-draft')
+  @UseGuards(JwtGuard, RoleGuard)
+  setDraft(
+    @Query('slug') slug: string,
+    @Query('draft') draft: boolean
+  ): Observable<Blog | BadRequestException> {
+    return this.blogsService.setBlogsDraftStatus(slug, draft);
   }
 
   @Roles(Role.ADMIN)

@@ -85,6 +85,28 @@ export class BlogsService {
     );
   }
 
+  setBlogsDraftStatus(slug: string, draft: boolean): Observable<Blog> {
+    if (slug) {
+      return from(
+        this.blogModel.findOneAndUpdate({ slug }, { draft }, { new: true })
+      ).pipe(
+        map(blog => {
+          if (blog) {
+            return blog as Blog;
+          } else {
+            throw new BadRequestException('Blog not found');
+          }
+        })
+      );
+    } else {
+      return from(this.blogModel.updateMany({}, { draft })).pipe(
+        map(() => {
+          return null;
+        })
+      );
+    }
+  }
+
   createBlog(
     blog: BlogBody,
     token: string
