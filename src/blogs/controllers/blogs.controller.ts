@@ -21,6 +21,9 @@ import { BlogBody } from '../models/blog-body.class';
 import { Observable } from 'rxjs';
 import { Blog } from '../models/blog.interface';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { Roles } from 'src/auth/roles/roles.decorator';
+import { Role } from 'src/helpers/role.enum';
+import { RoleGuard } from 'src/auth/guards/role.guard';
 
 @Controller('blogs')
 export class BlogsController {
@@ -46,8 +49,9 @@ export class BlogsController {
     return this.blogsService.getBlog(slug);
   }
 
+  @Roles(Role.ADMIN)
   @Post()
-  @UseGuards(JwtGuard)
+  @UseGuards(JwtGuard, RoleGuard)
   createBlog(
     @Headers('authorization') token: string,
     @Body() blog: BlogBody
@@ -55,8 +59,9 @@ export class BlogsController {
     return this.blogsService.createBlog(blog, token);
   }
 
+  @Roles(Role.ADMIN)
   @Post('upload-image')
-  @UseGuards(JwtGuard)
+  @UseGuards(JwtGuard, RoleGuard)
   @UseInterceptors(FileInterceptor('image'))
   uploadImage(
     @UploadedFile() image: Express.Multer.File,

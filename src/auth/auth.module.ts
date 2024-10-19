@@ -15,6 +15,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { JwtGuard } from './guards/jwt-auth.guard';
 import { JwtGuardStrategy } from './guards/jwt-auth.strategy';
 import { HeaderApiKeyStrategy } from './guards/auth-header-api-key.strategy';
+import { RoleGuard } from './guards/role.guard';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { HeaderApiKeyStrategy } from './guards/auth-header-api-key.strategy';
     HeaderApiKeyStrategy,
     JwtGuardStrategy,
     JwtGuard,
+    RoleGuard,
     AuthService
   ]
 })

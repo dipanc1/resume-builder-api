@@ -9,4 +9,7 @@ export class UserBody {
 
   @IsEmail()
   email: string;
+
+  @IsString()
+  role: string;
 }

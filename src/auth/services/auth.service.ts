@@ -1,5 +1,5 @@
-import { Injectable } from '@nestjs/common';
-import { Observable, from, of, switchMap } from 'rxjs';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { Observable, catchError, from, map, of, switchMap } from 'rxjs';
 
 import { JwtService } from '@nestjs/jwt';
 
@@ -10,6 +10,7 @@ import { InjectModel } from '@nestjs/mongoose';
 
 import { UserBody } from '../models/user-body.class';
 import { User } from '../models/user.interface';
+import { Role } from 'src/helpers/role.enum';
 
 @Injectable()
 export class AuthService {
@@ -50,7 +51,40 @@ export class AuthService {
   }
 
   oAuthLogin(user: UserBody): Observable<string> {
-    return of(this.jwtService.sign({ email: user.email }));
+    return of(this.jwtService.sign({ email: user.email, role: user.role }));
+  }
+
+  updateRole(email: string, role: Role): Observable<User> {
+    if (!Object.values(Role).includes(role)) {
+      throw new BadRequestException('Invalid role');
+    }
+    return from(this.userModel.findOne({ email })).pipe(
+      switchMap(user => {
+        if (!user) {
+          throw new BadRequestException('User not found');
+        }
+
+        return from(
+          this.userModel
+            .findOneAndUpdate({ email }, { role }, { new: true })
+            .exec()
+        ).pipe(
+          map(updatedUser => {
+            if (!updatedUser) {
+              throw new BadRequestException('Failed to update role');
+            }
+
+            return updatedUser as User;
+          }),
+          catchError(err => {
+            throw new BadRequestException(err.message);
+          })
+        );
+      }),
+      catchError(err => {
+        throw new BadRequestException(err.message);
+      })
+    );
   }
 
   listUsers(

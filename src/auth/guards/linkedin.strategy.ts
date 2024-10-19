@@ -25,7 +25,8 @@ export class LinkedInPassportStrategy extends PassportStrategy(
     const user = {
       firstName: profile.name.givenName,
       lastName: profile.name.familyName,
-      email: profile.emails[0].value
+      email: profile.emails[0].value,
+      role: 'user'
     };
 
     const existingUser = await this.authService.validateUser(user.email);

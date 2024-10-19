@@ -1,7 +1,9 @@
 import {
+  Body,
   Controller,
   Get,
   Headers,
+  Put,
   Query,
   Req,
   Res,
@@ -18,6 +20,7 @@ import { HeaderApiKeyGuard } from '../guards/auth-header-api-key.guard';
 import { AuthService } from '../services/auth.service';
 
 import { User } from '../models/user.interface';
+import { UpdateUserBody } from '../models/update-user-body.class';
 
 @Controller('auth')
 export class AuthController {
@@ -26,6 +29,13 @@ export class AuthController {
   @UseGuards(JwtGuard)
   user(@Headers('authorization') token: string) {
     return this.authService.getUser(token);
+  }
+
+  @Put('update-role')
+  @UseGuards(HeaderApiKeyGuard)
+  updateRole(@Body() body: UpdateUserBody): Observable<User> {
+    const { email, role } = body;
+    return this.authService.updateRole(email, role);
   }
 
   @Get('list')
