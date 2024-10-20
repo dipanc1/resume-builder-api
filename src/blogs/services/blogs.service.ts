@@ -69,11 +69,57 @@ export class BlogsService {
     );
   }
 
+  getAllBlogs(
+    skip: number,
+    limit: number
+  ): Observable<{
+    blogs: Blog[];
+    totalCount: number;
+    totalPages: number;
+    currentPage: number;
+  }> {
+    return from(
+      this.blogModel
+        .find()
+        .populate('author', 'firstName lastName')
+        .skip(skip)
+        .limit(limit)
+        .sort({ createdAt: -1 })
+    ).pipe(
+      switchMap(blogs => {
+        return from(this.blogModel.countDocuments()).pipe(
+          map(totalCount => {
+            return {
+              blogs: blogs as Blog[],
+              totalCount,
+              totalPages: Math.ceil(totalCount / limit),
+              currentPage: skip + 1
+            };
+          })
+        );
+      })
+    );
+  }
+
   getBlog(slug: string): Observable<Blog | BadRequestException> {
     return from(
       this.blogModel
         .findOne({ slug, draft: false })
         .populate('author', 'firstName lastName')
+    ).pipe(
+      map(blog => {
+        if (blog) {
+          return blog as Blog;
+        } else {
+          throw new BadRequestException('Blog not found');
+        }
+      })
+    );
+  }
+
+  getAnyBlog(slug: string): Observable<Blog | BadRequestException> {
+    return from(
+      this.blogModel.findOne({ slug }).populate('author', 'firstName lastName')
     ).pipe(
       map(blog => {
         if (blog) {

@@ -44,9 +44,35 @@ export class BlogsController {
     return this.blogsService.getBlogs(skip, limit);
   }
 
+  @Roles(Role.ADMIN)
+  @Get('get-all-blogs')
+  @UseGuards(JwtGuard, RoleGuard)
+  getAllBlogs(
+    @Query('pageNumber') pageNumber: string,
+    @Query('pageSize') pageSize: string
+  ): Observable<{
+    blogs: Blog[];
+    totalCount: number;
+    totalPages: number;
+    currentPage: number;
+  }> {
+    const skip = parseInt(pageNumber) > 0 ? parseInt(pageNumber) - 1 : 0;
+    const limit = parseInt(pageSize) > 0 ? parseInt(pageSize) : 10;
+    return this.blogsService.getAllBlogs(skip, limit);
+  }
+
   @Get('get-blog/:slug')
   getBlog(@Param('slug') slug: string): Observable<Blog | BadRequestException> {
     return this.blogsService.getBlog(slug);
+  }
+
+  @Roles(Role.ADMIN)
+  @Get('get-any-blog/:slug')
+  @UseGuards(JwtGuard, RoleGuard)
+  getAnyBlog(
+    @Param('slug') slug: string
+  ): Observable<Blog | BadRequestException> {
+    return this.blogsService.getAnyBlog(slug);
   }
 
   @Roles(Role.ADMIN)
