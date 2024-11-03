@@ -39,7 +39,7 @@ export class SendResumeService {
     private readonly authService: AuthService
   ) {}
 
-  sendResume(resumeBody: ResumeBody): Observable<any> {
+  sendResume(resumeBody: ResumeBody): Observable<ResumeBody> {
     const { resume } = resumeBody;
     if (!resume) throw new BadRequestException('Please provide a resume.');
 
@@ -60,7 +60,7 @@ export class SendResumeService {
             headers
           })
           .pipe(
-            map(async response => response.data.resume),
+            map(response => response.data.resume),
             catchError((error: AxiosError) => {
               Logger.log(error);
               throw new BadRequestException('An error happened!');

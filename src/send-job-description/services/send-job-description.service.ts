@@ -1,13 +1,6 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 
-import {
-  Observable,
-  catchError,
-  firstValueFrom,
-  from,
-  of,
-  switchMap
-} from 'rxjs';
+import { Observable, catchError, firstValueFrom, from, map, of } from 'rxjs';
 
 import { AxiosError } from 'axios';
 
@@ -16,6 +9,7 @@ import { HttpService } from '@nestjs/axios';
 import { JobDescriptionBody } from '../models/job-description-body.class';
 import { ResumeBody } from 'src/send-resume/models/resume-body.class';
 import { CleanJobDescriptionBody } from '../models/clean-job-description-body.class';
+import { endPoints, ports } from 'src/constants';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const cheerio = require('cheerio');
@@ -27,23 +21,31 @@ export class SendJobDescriptionService {
   sendJobDescription(
     jobDescription: JobDescriptionBody
   ): Observable<ResumeBody> {
+    if (!jobDescription.jobDescription)
+      throw new BadRequestException('Please provide a job description.');
+
+    if (!jobDescription.resume)
+      throw new BadRequestException('Please provide a resume.');
+
+    const url = `${process.env.AGI_URL}:${ports.AGI}/${endPoints.GENERATE_RESUME}`;
+
+    const headers = {
+      'X-API-KEY': process.env.API_KEY
+    };
+
+    const body = {
+      job_description: jobDescription.jobDescription,
+      profile_text: jobDescription.resume
+    };
+
     return from(
       firstValueFrom(
         this.httpService
-          .post<ResumeBody>(
-            process.env.AGI_URL,
-            {
-              job_description: jobDescription.jobDescription,
-              profile_text: jobDescription.resume
-            },
-            {
-              headers: {
-                'X-API-KEY': process.env.API_KEY
-              }
-            }
-          )
+          .post(url, body, {
+            headers
+          })
           .pipe(
-            switchMap(async response => JSON.parse(response.data.resume)),
+            map(response => response.data.resume),
             catchError((error: AxiosError) => {
               Logger.log(error);
               throw new BadRequestException('An error happened!');

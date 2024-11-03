@@ -44,7 +44,7 @@ export class SendResumeController {
 
   @Post()
   @UseGuards(ThrottlerGuard)
-  sendResume(@Body() resume: ResumeBody): Observable<any> {
+  sendResume(@Body() resume: ResumeBody): Observable<ResumeBody> {
     return this.sendResumeService.sendResume(resume);
   }
 
