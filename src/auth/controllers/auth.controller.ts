@@ -83,7 +83,7 @@ export class AuthController {
         if (!existingUser) {
           this.authService.createUser(req.user).subscribe(() => {
             this.authService
-              .oAuthLogin(req.user, existingUser.role)
+              .oAuthLogin(req.user, req.user.role)
               .subscribe(token => {
                 res.redirect(url + token);
               });
