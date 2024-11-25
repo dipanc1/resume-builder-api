@@ -21,6 +21,9 @@ import { AuthService } from '../services/auth.service';
 
 import { User } from '../models/user.interface';
 import { UpdateUserBody } from '../models/update-user-body.class';
+import { RoleGuard } from '../guards/role.guard';
+import { Roles } from '../roles/roles.decorator';
+import { Role } from 'src/helpers/role.enum';
 
 @Controller('auth')
 export class AuthController {
@@ -38,8 +41,9 @@ export class AuthController {
     return this.authService.updateRole(email, role);
   }
 
+  @Roles(Role.ADMIN)
   @Get('list')
-  @UseGuards(HeaderApiKeyGuard)
+  @UseGuards(JwtGuard, RoleGuard)
   listUsers(
     @Query('pageNumber') pageNumber: string,
     @Query('pageSize') pageSize: string
