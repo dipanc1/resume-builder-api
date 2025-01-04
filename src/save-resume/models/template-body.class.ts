@@ -7,6 +7,10 @@ export class TemplateBody {
 
   @IsString()
   @IsNotEmpty()
+  description: string;
+
+  @IsString()
+  @IsNotEmpty()
   imageUrl: string;
 
   @IsNumber()

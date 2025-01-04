@@ -84,6 +84,15 @@ export class SaveResumeController {
     return this.saveResumeService.saveTemplate(saveTemplate);
   }
 
+  @Put('template/:templateId')
+  @UseGuards(HeaderApiKeyGuard)
+  updateTemplate(
+    @Param('templateId') templateId: string,
+    @Body() updateTemplate: TemplateBody
+  ): Observable<Template | BadRequestException> {
+    return this.saveResumeService.updateTemplate(templateId, updateTemplate);
+  }
+
   @Get('template/getAll')
   getTemplates(): Observable<Template[] | BadRequestException> {
     return this.saveResumeService.getTemplates();

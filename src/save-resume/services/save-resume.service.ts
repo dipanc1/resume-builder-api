@@ -250,7 +250,7 @@ export class SaveResumeService {
   saveTemplate(
     saveTemplate: TemplateBody
   ): Observable<Template | BadRequestException> {
-    const { imageUrl, price, name } = saveTemplate;
+    const { imageUrl, price, name, description } = saveTemplate;
     return from(this.templateModel.findOne({ slug: kebabCase(name) })).pipe(
       switchMap(template => {
         if (template) {
@@ -262,6 +262,7 @@ export class SaveResumeService {
             imageUrl,
             price,
             name,
+            description,
             slug: kebabCase(name)
           })
         ).pipe(
@@ -273,6 +274,25 @@ export class SaveResumeService {
             return template as Template;
           })
         );
+      })
+    );
+  }
+
+  updateTemplate(
+    templateId: string,
+    updateTemplate: TemplateBody
+  ): Observable<Template | BadRequestException> {
+    return from(
+      this.templateModel.findByIdAndUpdate(templateId, updateTemplate, {
+        new: true
+      })
+    ).pipe(
+      map(template => {
+        if (!template) {
+          throw new BadRequestException('Failed to update template');
+        }
+
+        return template as Template;
       })
     );
   }
